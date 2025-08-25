@@ -1,0 +1,36 @@
+{
+  "name": "REMS Development Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "rems-dev",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "developer",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-json",
+        "ms-python.python",
+        "ms-vscode.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "cweijan.vscode-postgresql-client2"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.eslint.fixAll": "explicit"
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [3000, 3001, 5432],
+  "postCreateCommand": "sudo chown -R developer:developer /workspace && npm install",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  }
+}

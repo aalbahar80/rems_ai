@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  rems-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../:/workspace:cached
+    command: sleep infinity
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_HOST=postgres
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${POSTGRES_DB:-rems}
+      - DB_USER=${POSTGRES_USER:-rems_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - DB_SCHEMA=${DB_SCHEMA:-rems}
+    depends_on:
+      - postgres
+    networks:
+      - rems-network
+    user: developer
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-15.4}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rems}
+      POSTGRES_USER: ${POSTGRES_USER:-rems_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${DB_EXTERNAL_PORT:-5432}:5432"
+    networks:
+      - rems-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-rems_user} -d ${POSTGRES_DB:-rems}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: PgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@rems.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-changeme}
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "${PGADMIN_PORT:-8080}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - rems-network
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+
+networks:
+  rems-network:
+    driver: bridge
