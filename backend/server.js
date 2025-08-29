@@ -8,6 +8,9 @@ require('dotenv').config();
 const config = require('./src/config/environment');
 const { testConnection, validateSchema } = require('./src/config/database');
 
+// Import routes
+const authRoutes = require('./src/routes/auth');
+
 const app = express();
 
 // Security middleware
@@ -127,6 +130,9 @@ app.get('/api/v1/health/schema', async (req, res) => {
     });
   }
 });
+
+// API Routes
+app.use('/api/v1/auth', authRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
