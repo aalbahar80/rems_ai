@@ -110,31 +110,6 @@ SELECT * FROM active_contracts_summary; -- ✅ View working properly
 
 ### **Context for Next Claude Code Session**
 
-```bash
-# Provide this context block to Claude Code:
-
-"Continuing REMS development from session [YYYYMMDD_HHMMSS].
-
-Previous Session Completed:
-- [Summary of what was accomplished]
-- [Key files and features implemented]
-
-Current Infrastructure:
-- ✅ PostgreSQL 15 running on localhost:5433
-- ✅ 23 tables with international seed data loaded
-- ✅ Backend foundation with Express.js and TypeScript
-- ✅ Container isolation working properly
-
-Next Objectives:
-[Copy the priority tasks from above]
-
-Key Files to Reference:
-- docs/current_status.md (overall project status)
-- docs/progress/session_[this_session].md (previous session details)
-- docs/API_ENDPOINTS.md (API specifications)
-
-Please verify database connectivity first, then proceed with [specific next task]."
-```
 
 ## 💾 Session Artifacts
 
