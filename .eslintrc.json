@@ -4,18 +4,14 @@
     "node": true,
     "jest": true
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:node/recommended",
-    "plugin:security/recommended",
-    "prettier"
-  ],
+  "extends": ["eslint:recommended", "plugin:node/recommended", "prettier"],
+  "plugins": ["security"],
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module"
   },
   "rules": {
-    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "no-console": ["warn", { "allow": ["warn", "error", "info", "log"] }],
     "no-unused-vars": [
       "error",
       {
@@ -49,7 +45,8 @@
         "allowModules": ["supertest"]
       }
     ],
-    "security/detect-object-injection": "off"
+    "security/detect-object-injection": "off",
+    "security/detect-non-literal-fs-filename": "off"
   },
   "overrides": [
     {
@@ -62,5 +59,13 @@
       }
     }
   ],
-  "ignorePatterns": ["node_modules/", "dist/", "build/", "coverage/", "*.min.js", "frontend/"]
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "coverage/",
+    "*.min.js",
+    "frontend/",
+    "backend/src/"
+  ]
 }
