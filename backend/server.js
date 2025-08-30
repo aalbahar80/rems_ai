@@ -10,6 +10,10 @@ const { testConnection, validateSchema } = require('./src/config/database');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
+const propertyRoutes = require('./src/routes/properties');
+const tenantRoutes = require('./src/routes/tenants');
+const financialRoutes = require('./src/routes/financial');
+const maintenanceRoutes = require('./src/routes/maintenance');
 
 const app = express();
 
@@ -133,6 +137,10 @@ app.get('/api/v1/health/schema', async (req, res) => {
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/properties', propertyRoutes);
+app.use('/api/v1/tenants', tenantRoutes);
+app.use('/api/v1/financial', financialRoutes);
+app.use('/api/v1/maintenance', maintenanceRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
