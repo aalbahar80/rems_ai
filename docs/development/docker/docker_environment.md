@@ -16,7 +16,9 @@
 
 ## Overview
 
-The REMS development environment provides a complete, containerized setup for building a comprehensive property management application. This Docker-based environment ensures consistency across all development machines and eliminates configuration issues.
+The REMS development environment provides a complete, containerized setup for building a
+comprehensive property management application. This Docker-based environment ensures consistency
+across all development machines and eliminates configuration issues.
 
 ### Key Benefits
 
@@ -56,12 +58,12 @@ The REMS development environment provides a complete, containerized setup for bu
 
 ### Container Stack
 
-| Service | Image | Port | Purpose |
-|---------|-------|------|---------|
-| postgres | postgres:15-alpine | 5432 | Primary database |
-| pgadmin | dpage/pgadmin4:latest | 8080 | Database administration |
-| backend | node:18-alpine | 3001 | API server (when running) |
-| frontend | node:18-alpine | 3000 | Web UI (future) |
+| Service  | Image                 | Port | Purpose                   |
+| -------- | --------------------- | ---- | ------------------------- |
+| postgres | postgres:15-alpine    | 5432 | Primary database          |
+| pgadmin  | dpage/pgadmin4:latest | 8080 | Database administration   |
+| backend  | node:18-alpine        | 3001 | API server (when running) |
+| frontend | node:18-alpine        | 3000 | Web UI (future)           |
 
 ### Volume Mapping
 
@@ -119,6 +121,7 @@ nano .devcontainer/.env  # or use your preferred editor
 ### 3. Configure Database Credentials
 
 **.devcontainer/.env:**
+
 ```env
 POSTGRES_DB=rems
 POSTGRES_USER=rems_user
@@ -127,6 +130,7 @@ POSTGRES_PORT=5432
 ```
 
 **backend/.env:**
+
 ```env
 DB_HOST=postgres
 DB_PORT=5432
@@ -168,6 +172,7 @@ docker exec -it rems-postgres psql -U rems_user -d rems -c "SELECT version();"
 ### PostgreSQL Database
 
 **Connection Details:**
+
 - Host: `localhost` (external) / `postgres` (internal)
 - Port: `5432`
 - Database: `rems`
@@ -176,6 +181,7 @@ docker exec -it rems-postgres psql -U rems_user -d rems -c "SELECT version();"
 - Password: (from .env file)
 
 **Features:**
+
 - PostgreSQL 15 with latest features
 - Automatic schema initialization
 - Seed data for development
@@ -186,10 +192,12 @@ docker exec -it rems-postgres psql -U rems_user -d rems -c "SELECT version();"
 **Access:** http://localhost:8080
 
 **Login Credentials:**
+
 - Email: `admin@rems.local` (from .env)
 - Password: (from .env file)
 
 **Adding Database Connection:**
+
 1. Right-click "Servers" → Create → Server
 2. General Tab: Name = "REMS Development"
 3. Connection Tab:
@@ -204,6 +212,7 @@ docker exec -it rems-postgres psql -U rems_user -d rems -c "SELECT version();"
 **Access:** http://localhost:3001
 
 **Starting the Server:**
+
 ```bash
 cd backend
 npm install  # First time only
@@ -296,15 +305,15 @@ docker exec -i rems-postgres psql -U rems_user rems < database/migrations/001_up
 
 The REMS database contains 23 tables across 10 modules:
 
-| Module | Tables | Purpose |
-|--------|--------|---------|
-| Property & Ownership | 4 | Core property management |
-| Tenant & Contracts | 2 | Lease management |
-| Financial | 5 | Invoices, receipts, transactions |
-| Maintenance | 2 | Work orders and vendors |
-| Users & Auth | 3 | Authentication and permissions |
-| System Config | 4 | Settings and notifications |
-| Audit | 3 | Logging and history |
+| Module               | Tables | Purpose                          |
+| -------------------- | ------ | -------------------------------- |
+| Property & Ownership | 4      | Core property management         |
+| Tenant & Contracts   | 2      | Lease management                 |
+| Financial            | 5      | Invoices, receipts, transactions |
+| Maintenance          | 2      | Work orders and vendors          |
+| Users & Auth         | 3      | Authentication and permissions   |
+| System Config        | 4      | Settings and notifications       |
+| Audit                | 3      | Logging and history              |
 
 ### Useful Database Commands
 
@@ -329,13 +338,13 @@ SELECT * FROM pg_stat_activity WHERE datname = 'rems';
 
 ```sql
 -- Property overview
-SELECT p.property_code, 
-       p.property_name, 
+SELECT p.property_code,
+       p.property_name,
        COUNT(u.unit_id) as units,
        COUNT(DISTINCT rc.contract_id) as active_contracts
 FROM rems.properties p
 LEFT JOIN rems.units u ON p.property_id = u.property_id
-LEFT JOIN rems.rental_contracts rc ON u.unit_id = rc.unit_id 
+LEFT JOIN rems.rental_contracts rc ON u.unit_id = rc.unit_id
   AND rc.contract_status = 'active'
 GROUP BY p.property_id;
 
@@ -357,6 +366,7 @@ WHERE rt.year = EXTRACT(YEAR FROM CURRENT_DATE)
 **Error:** "bind: address already in use"
 
 **Solution:**
+
 ```bash
 # Find process using port
 lsof -i :5432  # macOS/Linux
@@ -370,6 +380,7 @@ netstat -ano | findstr :5432  # Windows
 **Error:** "could not connect to database"
 
 **Solutions:**
+
 1. Check container is running: `docker-compose ps`
 2. Verify credentials match in both .env files
 3. Check logs: `docker-compose logs postgres`
@@ -380,6 +391,7 @@ netstat -ano | findstr :5432  # Windows
 **Error:** "permission denied for schema rems"
 
 **Solution:**
+
 ```bash
 # Reset database permissions
 docker exec -it rems-postgres psql -U postgres -c "GRANT ALL ON SCHEMA rems TO rems_user;"
@@ -390,6 +402,7 @@ docker exec -it rems-postgres psql -U postgres -c "GRANT ALL ON SCHEMA rems TO r
 **Error:** "container exited with code 1"
 
 **Solutions:**
+
 1. Check logs: `docker-compose logs [service]`
 2. Clear volumes: `docker-compose down -v`
 3. Rebuild: `docker-compose build --no-cache`
@@ -421,6 +434,7 @@ docker exec -it rems-postgres bash
 ### Docker Settings
 
 **Docker Desktop Settings:**
+
 - Memory: Allocate at least 4GB
 - CPUs: 2+ cores
 - Disk: Enable virtualization
@@ -435,7 +449,7 @@ ANALYZE;
 VACUUM ANALYZE rems.rental_transactions;
 
 -- Check slow queries
-SELECT * FROM pg_stat_statements 
+SELECT * FROM pg_stat_statements
 ORDER BY total_time DESC LIMIT 10;
 ```
 
@@ -487,5 +501,5 @@ For integrated development, use VS Code's DevContainer feature:
 
 ---
 
-*Last Updated: [23/08/2025]*  
-*Version: 1.0*
+_Last Updated: [23/08/2025]_  
+_Version: 1.0_

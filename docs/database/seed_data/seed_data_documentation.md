@@ -16,13 +16,18 @@
 
 ## Overview
 
-The REMS (Real Estate Management System) international seed data provides a comprehensive test dataset designed for system validation, demonstration, and development purposes. This dataset simulates a realistic property management portfolio with international stakeholders, diverse property types, and complete business workflows.
+The REMS (Real Estate Management System) international seed data provides a comprehensive test
+dataset designed for system validation, demonstration, and development purposes. This dataset
+simulates a realistic property management portfolio with international stakeholders, diverse
+property types, and complete business workflows.
 
 ### Key Features
 
 - **International diversity**: Owners, tenants, and vendors from 10+ nationalities
-- **Complete workflows**: End-to-end business processes from property ownership to payment processing
-- **Realistic scenarios**: Active contracts, maintenance requests, payment histories, and financial transactions
+- **Complete workflows**: End-to-end business processes from property ownership to payment
+  processing
+- **Realistic scenarios**: Active contracts, maintenance requests, payment histories, and financial
+  transactions
 - **Multi-language support**: English and Arabic language preferences
 - **Role-based access**: Complete user authentication and authorization structure
 
@@ -38,20 +43,20 @@ The REMS (Real Estate Management System) international seed data provides a comp
 
 ### Statistical Summary
 
-|Entity|Count|Description|
-|---|---|---|
-|**Owners**|6|International property investors and partners|
-|**Properties**|15|Residential, commercial, and mixed-use buildings|
-|**Units**|26|Apartments, studios, commercial spaces, storage|
-|**Tenants**|15|Individual and corporate tenants|
-|**Rental Contracts**|15|Active, upcoming, terminated, and expired|
-|**Vendors**|13|Service providers and contractors|
-|**Maintenance Orders**|8|Various priority levels and statuses|
-|**Invoices**|10|Recurring and one-time billing|
-|**Receipts**|8|Multiple payment methods and gateways|
-|**Users**|10|System users with different roles|
-|**Expense Categories**|10|Comprehensive expense classification|
-|**Expense Types**|19|Detailed expense subcategories|
+| Entity                 | Count | Description                                      |
+| ---------------------- | ----- | ------------------------------------------------ |
+| **Owners**             | 6     | International property investors and partners    |
+| **Properties**         | 15    | Residential, commercial, and mixed-use buildings |
+| **Units**              | 26    | Apartments, studios, commercial spaces, storage  |
+| **Tenants**            | 15    | Individual and corporate tenants                 |
+| **Rental Contracts**   | 15    | Active, upcoming, terminated, and expired        |
+| **Vendors**            | 13    | Service providers and contractors                |
+| **Maintenance Orders** | 8     | Various priority levels and statuses             |
+| **Invoices**           | 10    | Recurring and one-time billing                   |
+| **Receipts**           | 8     | Multiple payment methods and gateways            |
+| **Users**              | 10    | System users with different roles                |
+| **Expense Categories** | 10    | Comprehensive expense classification             |
+| **Expense Types**      | 19    | Detailed expense subcategories                   |
 
 ---
 
@@ -65,7 +70,8 @@ The seed data includes six property owners representing different investment str
 
 - **Portfolio**: 8 properties (Z1-Z10 series)
 - **Investment Type**: Large-scale residential investor
-- **Properties**: Richardson Tower One/Two, Richardson Plaza, Gardens, Heights, Court, Residence, Studios
+- **Properties**: Richardson Tower One/Two, Richardson Plaza, Gardens, Heights, Court, Residence,
+  Studios
 - **Strategy**: Premium residential rentals in Salmiya
 
 #### **Sofia Marie Martinez** (Spanish)
@@ -411,30 +417,29 @@ Vendors ──> Maintenance_Orders <── Expense_Transactions
 ### Key Foreign Key Relationships
 
 1. **Property Ownership**
-    
-    - Properties → Owners (via ownership_periods)
-    - Supports multiple owners per property
-    - Temporal ownership tracking
+   - Properties → Owners (via ownership_periods)
+   - Supports multiple owners per property
+   - Temporal ownership tracking
+
 2. **Rental Management**
-    
-    - Units → Properties
-    - Contracts → Units + Tenants
-    - Supports dual tenants (couples)
+   - Units → Properties
+   - Contracts → Units + Tenants
+   - Supports dual tenants (couples)
+
 3. **Financial Tracking**
-    
-    - Invoices → Multiple entity types (polymorphic)
-    - Receipts → Invoices
-    - Transactions → Contracts/Invoices/Receipts
+   - Invoices → Multiple entity types (polymorphic)
+   - Receipts → Invoices
+   - Transactions → Contracts/Invoices/Receipts
+
 4. **Maintenance Workflow**
-    
-    - Orders → Units/Properties
-    - Orders → Tenants/Owners (requestors)
-    - Orders → Vendors (assigned)
+   - Orders → Units/Properties
+   - Orders → Tenants/Owners (requestors)
+   - Orders → Vendors (assigned)
+
 5. **User Authentication**
-    
-    - Users → Owners/Tenants/Vendors (polymorphic)
-    - Sessions → Users
-    - Notifications → Users
+   - Users → Owners/Tenants/Vendors (polymorphic)
+   - Sessions → Users
+   - Notifications → Users
 
 ---
 
@@ -547,11 +552,16 @@ Common issues and solutions:
 
 ## Conclusion
 
-The REMS international seed data provides a robust foundation for testing and demonstrating the Real Estate Management System. With its diverse international dataset, comprehensive business scenarios, and complete workflow coverage, developers can effectively validate system functionality, test edge cases, and demonstrate capabilities to stakeholders.
+The REMS international seed data provides a robust foundation for testing and demonstrating the Real
+Estate Management System. With its diverse international dataset, comprehensive business scenarios,
+and complete workflow coverage, developers can effectively validate system functionality, test edge
+cases, and demonstrate capabilities to stakeholders.
 
-The data represents realistic property management operations in Kuwait while maintaining international diversity, making it suitable for both local and global deployment scenarios.
+The data represents realistic property management operations in Kuwait while maintaining
+international diversity, making it suitable for both local and global deployment scenarios.
 
-For questions or contributions, please refer to the project repository or contact the development team.
+For questions or contributions, please refer to the project repository or contact the development
+team.
 
 ---
 

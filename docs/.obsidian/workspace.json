@@ -1,0 +1,183 @@
+{
+  "main": {
+    "id": "59a0f722f4f0f75e",
+    "type": "split",
+    "children": [
+      {
+        "id": "e12b53999142fecf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1c4676bce4c62346",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "project_management/status/session_ending_documentation.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "session_ending_documentation"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "9f05029476045c72",
+    "type": "split",
+    "children": [
+      {
+        "id": "76de5700827e527a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "94b03dbf2040aefe",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "9c84fc649ab66abc",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "062d70a66f588cf4",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "108ffee1ec501ead",
+    "type": "split",
+    "children": [
+      {
+        "id": "2b9accb405fe6ab1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7deb2542a89ff815",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "status/progress/session_20250825_183028.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for session_20250825_183028"
+            }
+          },
+          {
+            "id": "bc5a86cde8358376",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "status/progress/session_20250825_183028.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from session_20250825_183028"
+            }
+          },
+          {
+            "id": "42b5363e292a536b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "6fad65c8bf6c3c23",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "status/progress/session_20250825_183028.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of session_20250825_183028"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "1c4676bce4c62346",
+  "lastOpenFiles": [
+    "project_management/progress/session_20250829_132100.md",
+    "development_enviroment/ENVIRONMENT_VARIABLES.md",
+    "status/progress/session_20250829_132100.md",
+    "status/progress/session_20250825_183028.md",
+    "status/implementation_plans/rems_backend_api_implementation_20250829_151200.md",
+    "status/session_ending_documentation.md",
+    "status/current_status.md",
+    "database_docs/001_schema_documentation.md"
+  ]
+}

@@ -19,6 +19,7 @@
 13. [Developer Guide](#developer-guide)
 
 ---
+
 ### Database Quick Facts
 
 - **Database Engine**: PostgreSQL 15+
@@ -41,9 +42,12 @@ Vendors ───────┴──> Maintenance Orders ──> Expenses
 ```
 
 ---
+
 ## System Overview
 
-The Real Estate Management System (REMS) is a comprehensive property management database built on PostgreSQL 15+. The system manages multiple properties, owners, tenants, maintenance workflows, and complete financial tracking through 23 core tables organized into logical business modules.
+The Real Estate Management System (REMS) is a comprehensive property management database built on
+PostgreSQL 15+. The system manages multiple properties, owners, tenants, maintenance workflows, and
+complete financial tracking through 23 core tables organized into logical business modules.
 
 ### Key Capabilities
 
@@ -51,7 +55,8 @@ The Real Estate Management System (REMS) is a comprehensive property management 
 - **Complete Tenant Lifecycle**: From application through contract expiration
 - **Financial Management**: Invoicing, receipts, and transaction tracking
 - **Maintenance Workflow**: Request-to-completion with vendor management
-- **Multi-Portal Architecture**: Separate interfaces for owners, tenants, vendors, and administrators
+- **Multi-Portal Architecture**: Separate interfaces for owners, tenants, vendors, and
+  administrators
 - **Audit Compliance**: Complete tracking of all system changes
 
 ### Database Requirements
@@ -71,14 +76,15 @@ The Real Estate Management System (REMS) is a comprehensive property management 
 
 #### 1. Polymorphic Entity Handling
 
-The system extensively uses polymorphic relationships where a single table can reference multiple entity types:
+The system extensively uses polymorphic relationships where a single table can reference multiple
+entity types:
 
 ```
 ┌─────────────┐
 │   Invoices  │
 ├─────────────┤
 │ entity_type │ ──┬── 'rental_contract'  → rental_contracts
-│ entity_id   │   ├── 'maintenance_order' → maintenance_orders  
+│ entity_id   │   ├── 'maintenance_order' → maintenance_orders
 └─────────────┘   ├── 'property_expense'  → properties
                   └── 'owner_expense'     → owners
 ```
@@ -114,7 +120,7 @@ Property ownership supports fractional ownership:
 ```
 -- =====================================================
 -- 001 - Owners Table (Normalized REMS Structure)
--- 002 - Properties Table (Normalized REMS Structure)  
+-- 002 - Properties Table (Normalized REMS Structure)
 -- 003 - Property Ownership Periods (Normalized REMS)
 -- 004 - Units Table (Normalized REMS Structure)
 -- =====================================================
@@ -346,14 +352,14 @@ requestor_type: 'admin'  → system-initiated
 
 The invoice table uses `entity_type` and `entity_id` to reference different sources:
 
-|entity_type|References|Use Case|
-|---|---|---|
-|rental_contract|rental_contracts table|Monthly rent billing|
-|maintenance_order|maintenance_orders table|Repair costs|
-|property_expense|properties table|Building-wide expenses|
-|unit_expense|units table|Unit-specific costs|
-|owner_expense|owners table|Management fees|
-|vendor_payment|vendors table|Vendor services|
+| entity_type       | References               | Use Case               |
+| ----------------- | ------------------------ | ---------------------- |
+| rental_contract   | rental_contracts table   | Monthly rent billing   |
+| maintenance_order | maintenance_orders table | Repair costs           |
+| property_expense  | properties table         | Building-wide expenses |
+| unit_expense      | units table              | Unit-specific costs    |
+| owner_expense     | owners table             | Management fees        |
+| vendor_payment    | vendors table            | Vendor services        |
 
 ### Payment Gateway Integration
 
@@ -509,7 +515,7 @@ The system validates settings based on their type:
 │ • New values     │     ┌─────────────────┐
 │ • Changed by     │────►│ Login History   │
 └──────────────────┘     └─────────────────┘
-                         
+
                          ┌─────────────────┐
                     ────►│  System Logs    │
                          └─────────────────┘
@@ -547,7 +553,7 @@ The system validates settings based on their type:
 Properties ──┬──► Units (cannot exist without property)
              │
              └──► Property Ownership Periods
-             
+
 Invoices ────────► Receipts (cannot exist without invoice)
 
 Rental Contracts ─► Rental Transactions
@@ -570,7 +576,7 @@ Maintenance Orders ←──► Vendors
 
 ```
 Users ──┬──► Owners
-        ├──► Tenants  
+        ├──► Tenants
         └──► Vendors
         (One user maps to one entity)
 
@@ -651,6 +657,7 @@ The system includes analytical views:
 - `active_users_summary`: User activity monitoring
 
 ---
+
 ### Performance Optimization Guidelines
 
 #### Indexed Columns for Fast Queries:
@@ -690,6 +697,7 @@ VACUUM FULL ANALYZE;
 ```
 
 ---
+
 ## Developer Guide
 
 ### Getting Started
@@ -721,25 +729,26 @@ SELECT * FROM get_current_ownership('Z1', CURRENT_DATE);
 ##### Find Active Contracts for a Property
 
 ```sql
-SELECT * FROM active_contracts_summary 
+SELECT * FROM active_contracts_summary
 WHERE property_code = 'Z1';
 ```
 
 ##### Check Overdue Payments
 
 ```sql
-SELECT * FROM overdue_rental_transactions 
+SELECT * FROM overdue_rental_transactions
 WHERE risk_category = 'Critical';
 ```
 
 #### 3. Frequently Used Queries
+
 ##### Get Property Income Summary:
 
 sql
 
 ```sql
 WITH property_income AS (
-  SELECT 
+  SELECT
     p.property_code,
     p.property_name,
     DATE_TRUNC('month', rt.transaction_date) as month,
@@ -760,7 +769,7 @@ SELECT * FROM property_income ORDER BY month DESC, property_code;
 sql
 
 ```sql
-SELECT 
+SELECT
   t.full_name,
   t.mobile,
   t.email,
@@ -781,7 +790,7 @@ ORDER BY rc.end_date;
 sql
 
 ```sql
-SELECT 
+SELECT
   p.property_code,
   COUNT(mo.maintenance_order_id) as total_orders,
   SUM(CASE WHEN mo.priority = 'emergency' THEN 1 ELSE 0 END) as emergency_count,
@@ -794,8 +803,8 @@ GROUP BY p.property_code
 ORDER BY total_cost DESC;
 ```
 
-
 ---
+
 ### Extension Points
 
 #### Adding New Entity Types
@@ -821,6 +830,7 @@ To add new polymorphic entity types:
 ---
 
 ## API Integration Points
+
 #### Database ↔ API Mapping
 
 | Database Operation             | API Endpoint           | Method | Description         |
@@ -831,6 +841,7 @@ To add new polymorphic entity types:
 | SELECT + JOIN active_contracts | /api/dashboard/summary | GET    | Dashboard data      |
 
 #### Stored Procedures for API:
+
 sql
 
 ```sql
@@ -906,6 +917,7 @@ GRANT ALL ON ALL TABLES IN SCHEMA rems TO rems_admin;
 - User actions tracked with IP/timestamp
 
 ---
+
 ## Database Migration Strategy
 
 #### From Existing Systems:
@@ -935,6 +947,7 @@ WHERE op.id IS NULL;
 - v1.2 → v2.0: Add multi-currency support
 
 ---
+
 ## System Capabilities Summary
 
 ### Property Management
@@ -1026,9 +1039,15 @@ psql -U postgres -d rems < rems_backup_20240101_120000.sql
 
 ## Conclusion
 
-The REMS database schema provides a robust, scalable foundation for comprehensive property management operations. With its polymorphic design patterns, temporal data management, and extensive business rule enforcement, the system can handle complex real-world scenarios while maintaining data integrity and performance.
+The REMS database schema provides a robust, scalable foundation for comprehensive property
+management operations. With its polymorphic design patterns, temporal data management, and extensive
+business rule enforcement, the system can handle complex real-world scenarios while maintaining data
+integrity and performance.
 
-The modular architecture allows for independent development and testing of different functional areas while maintaining cohesive integration through well-defined relationships and constraints. The system is production-ready with built-in security, audit trails, and multi-portal support for different user types.
+The modular architecture allows for independent development and testing of different functional
+areas while maintaining cohesive integration through well-defined relationships and constraints. The
+system is production-ready with built-in security, audit trails, and multi-portal support for
+different user types.
 
 For the latest updates and seed data examples, refer to:
 

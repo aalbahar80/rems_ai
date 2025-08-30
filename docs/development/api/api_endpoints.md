@@ -18,7 +18,9 @@
 
 ## Overview
 
-The REMS API provides a comprehensive RESTful interface for managing all aspects of the real estate management system. Built on Node.js with Express, it interfaces with the PostgreSQL database containing 23 tables across 10 business modules.
+The REMS API provides a comprehensive RESTful interface for managing all aspects of the real estate
+management system. Built on Node.js with Express, it interfaces with the PostgreSQL database
+containing 23 tables across 10 business modules.
 
 ### Base URL
 
@@ -43,6 +45,7 @@ Future versions will maintain backward compatibility or provide migration guides
 **Content-Type:** `application/json`
 
 **Standard Response Structure:**
+
 ```json
 {
   "success": true,
@@ -53,6 +56,7 @@ Future versions will maintain backward compatibility or provide migration guides
 ```
 
 **Error Response Structure:**
+
 ```json
 {
   "success": false,
@@ -67,18 +71,18 @@ Future versions will maintain backward compatibility or provide migration guides
 
 ### HTTP Status Codes
 
-| Code | Meaning | Usage |
-|------|---------|-------|
-| 200 | OK | Successful GET, PUT |
-| 201 | Created | Successful POST |
-| 204 | No Content | Successful DELETE |
-| 400 | Bad Request | Invalid request data |
-| 401 | Unauthorized | Missing/invalid authentication |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Resource doesn't exist |
-| 409 | Conflict | Duplicate/conflicting data |
-| 422 | Unprocessable Entity | Validation errors |
-| 500 | Internal Server Error | Server error |
+| Code | Meaning               | Usage                          |
+| ---- | --------------------- | ------------------------------ |
+| 200  | OK                    | Successful GET, PUT            |
+| 201  | Created               | Successful POST                |
+| 204  | No Content            | Successful DELETE              |
+| 400  | Bad Request           | Invalid request data           |
+| 401  | Unauthorized          | Missing/invalid authentication |
+| 403  | Forbidden             | Insufficient permissions       |
+| 404  | Not Found             | Resource doesn't exist         |
+| 409  | Conflict              | Duplicate/conflicting data     |
+| 422  | Unprocessable Entity  | Validation errors              |
+| 500  | Internal Server Error | Server error                   |
 
 ### Authentication
 
@@ -97,6 +101,7 @@ POST /api/v1/auth/login
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -105,6 +110,7 @@ POST /api/v1/auth/login
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -152,6 +158,7 @@ PUT /api/v1/auth/profile
 ```
 
 **Request Body:**
+
 ```json
 {
   "full_name": "John Smith",
@@ -167,6 +174,7 @@ POST /api/v1/auth/password/reset
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com"
@@ -180,6 +188,7 @@ PUT /api/v1/auth/password/reset
 ```
 
 **Request Body:**
+
 ```json
 {
   "token": "reset-token-from-email",
@@ -198,6 +207,7 @@ GET /api/v1/properties
 ```
 
 **Query Parameters:**
+
 - `page` (default: 1)
 - `limit` (default: 20)
 - `sort` (property_code, property_name, created_at)
@@ -207,6 +217,7 @@ GET /api/v1/properties
 - `is_active` (true, false)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -239,6 +250,7 @@ GET /api/v1/properties/:id
 ```
 
 **Response includes:**
+
 - Property details
 - Current ownership information
 - Unit summary
@@ -251,13 +263,14 @@ POST /api/v1/properties
 ```
 
 **Request Body:**
+
 ```json
 {
   "property_code": "Z11",
   "property_name": "New Tower",
   "location": "Kuwait City",
   "address": "Block 4, Street 15",
-  "area_sqm": 1200.50,
+  "area_sqm": 1200.5,
   "property_type": "residential",
   "construction_year": 2020
 }
@@ -296,6 +309,7 @@ GET /api/v1/properties/search
 ```
 
 **Query Parameters:**
+
 - `q` - Search term (searches code, name, location)
 - `min_value` - Minimum valuation
 - `max_value` - Maximum valuation
@@ -311,6 +325,7 @@ GET /api/v1/tenants
 ```
 
 **Query Parameters:**
+
 - `page`, `limit`, `sort`, `order`
 - `nationality`
 - `has_active_contract` (true, false)
@@ -329,6 +344,7 @@ POST /api/v1/tenants
 ```
 
 **Request Body:**
+
 ```json
 {
   "first_name": "Ahmed",
@@ -373,6 +389,7 @@ GET /api/v1/invoices
 ```
 
 **Query Parameters:**
+
 - `status` (draft, sent, paid, overdue)
 - `invoice_type` (rental, expense, deposit, late_fee)
 - `entity_type` (rental_contract, maintenance_order)
@@ -385,13 +402,14 @@ POST /api/v1/invoices
 ```
 
 **Request Body:**
+
 ```json
 {
   "invoice_type": "rental",
   "entity_id": 1,
   "entity_type": "rental_contract",
   "due_date": "2024-01-31",
-  "total_amount": 450.00,
+  "total_amount": 450.0,
   "description": "Monthly rent - January 2024",
   "is_recurring": true,
   "recurring_frequency": "monthly"
@@ -421,10 +439,11 @@ POST /api/v1/receipts
 ```
 
 **Request Body:**
+
 ```json
 {
   "invoice_id": 1,
-  "amount_received": 450.00,
+  "amount_received": 450.0,
   "payment_method": "bank_transfer",
   "payment_provider": "NBK",
   "external_transaction_id": "TXN-123456"
@@ -454,13 +473,14 @@ POST /api/v1/transactions/expenses
 ```
 
 **Request Body for Expense:**
+
 ```json
 {
   "property_id": 1,
   "expense_category_id": 2,
   "expense_type_id": 5,
   "vendor_id": 3,
-  "amount": 150.00,
+  "amount": 150.0,
   "description": "Plumbing repair",
   "expense_date": "2024-01-15"
 }
@@ -477,6 +497,7 @@ GET /api/v1/maintenance
 ```
 
 **Query Parameters:**
+
 - `status` (submitted, approved, in_progress, completed)
 - `priority` (low, medium, high, emergency)
 - `requestor_type` (tenant, owner)
@@ -489,6 +510,7 @@ POST /api/v1/maintenance
 ```
 
 **Request Body:**
+
 ```json
 {
   "unit_id": 5,
@@ -499,7 +521,7 @@ POST /api/v1/maintenance
   "title": "AC Not Working",
   "description": "Air conditioning unit not cooling",
   "priority": "high",
-  "estimated_cost": 200.00
+  "estimated_cost": 200.0
 }
 ```
 
@@ -516,6 +538,7 @@ POST /api/v1/maintenance/:id/assign
 ```
 
 **Request Body:**
+
 ```json
 {
   "vendor_id": 4,
@@ -531,6 +554,7 @@ PUT /api/v1/maintenance/:id/status
 ```
 
 **Request Body:**
+
 ```json
 {
   "status": "in_progress",
@@ -555,6 +579,7 @@ GET /api/v1/dashboard/overview
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -563,7 +588,7 @@ GET /api/v1/dashboard/overview
     "units_total": 26,
     "units_occupied": 22,
     "occupancy_rate": 84.6,
-    "monthly_income": 12500.00,
+    "monthly_income": 12500.0,
     "pending_maintenance": 5,
     "overdue_payments": 3,
     "expiring_contracts": 2
@@ -578,6 +603,7 @@ GET /api/v1/reports/occupancy
 ```
 
 **Query Parameters:**
+
 - `property_id` (optional)
 - `date_from`, `date_to`
 - `group_by` (property, month)
@@ -589,6 +615,7 @@ GET /api/v1/reports/income
 ```
 
 **Query Parameters:**
+
 - `year` (required)
 - `month` (optional)
 - `property_id` (optional)
@@ -600,6 +627,7 @@ GET /api/v1/reports/expenses
 ```
 
 **Query Parameters:**
+
 - `date_from`, `date_to`
 - `category_id`
 - `property_id`
@@ -617,6 +645,7 @@ GET /api/v1/analytics/trends
 ```
 
 **Query Parameters:**
+
 - `metric` (income, expenses, occupancy)
 - `period` (monthly, quarterly, yearly)
 - `year`
@@ -645,6 +674,7 @@ GET /api/v1/audit/logs
 ```
 
 **Query Parameters:**
+
 - `table_name`
 - `entity_id`
 - `operation_type` (INSERT, UPDATE, DELETE)
@@ -657,6 +687,7 @@ GET /api/v1/notifications
 ```
 
 **Query Parameters:**
+
 - `is_read` (true, false)
 - `type` (info, warning, error, maintenance)
 
@@ -673,11 +704,13 @@ POST /api/v1/upload
 ```
 
 **Request:**
+
 - Method: `multipart/form-data`
 - Field name: `file`
 - Max size: 10MB
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -696,16 +729,16 @@ POST /api/v1/upload
 
 ### Common Error Codes
 
-| Code | Description | Example |
-|------|-------------|---------|
-| `AUTH_REQUIRED` | Authentication required | Missing token |
-| `AUTH_INVALID` | Invalid authentication | Expired token |
-| `PERMISSION_DENIED` | Insufficient permissions | Tenant accessing owner endpoints |
-| `VALIDATION_ERROR` | Input validation failed | Invalid email format |
-| `NOT_FOUND` | Resource not found | Property doesn't exist |
-| `DUPLICATE_ENTRY` | Duplicate data | Email already exists |
-| `FOREIGN_KEY_VIOLATION` | Related data constraint | Deleting property with units |
-| `BUSINESS_RULE_VIOLATION` | Business logic error | Contract dates invalid |
+| Code                      | Description              | Example                          |
+| ------------------------- | ------------------------ | -------------------------------- |
+| `AUTH_REQUIRED`           | Authentication required  | Missing token                    |
+| `AUTH_INVALID`            | Invalid authentication   | Expired token                    |
+| `PERMISSION_DENIED`       | Insufficient permissions | Tenant accessing owner endpoints |
+| `VALIDATION_ERROR`        | Input validation failed  | Invalid email format             |
+| `NOT_FOUND`               | Resource not found       | Property doesn't exist           |
+| `DUPLICATE_ENTRY`         | Duplicate data           | Email already exists             |
+| `FOREIGN_KEY_VIOLATION`   | Related data constraint  | Deleting property with units     |
+| `BUSINESS_RULE_VIOLATION` | Business logic error     | Contract dates invalid           |
 
 ### Error Response Example
 
@@ -816,6 +849,7 @@ Import the following collection for testing:
 ### cURL Examples
 
 **Login:**
+
 ```bash
 curl -X POST http://localhost:3001/api/v1/auth/login \
   -H "Content-Type: application/json" \
@@ -823,6 +857,7 @@ curl -X POST http://localhost:3001/api/v1/auth/login \
 ```
 
 **Get Properties:**
+
 ```bash
 curl -X GET http://localhost:3001/api/v1/properties \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
@@ -839,6 +874,7 @@ Default limits (configurable in .env):
 - **File Upload**: 10 requests per hour
 
 Headers returned:
+
 - `X-RateLimit-Limit`: Request limit
 - `X-RateLimit-Remaining`: Remaining requests
 - `X-RateLimit-Reset`: Reset timestamp
@@ -857,5 +893,5 @@ Planned webhook events:
 
 ---
 
-*Last Updated: [23/08/2025]*  
-*API Version: 1.0*
+_Last Updated: [23/08/2025]_  
+_API Version: 1.0_
