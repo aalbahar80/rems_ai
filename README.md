@@ -10,7 +10,8 @@
 
 **A comprehensive property management system for modern real estate operations**
 
-[Getting Started](#-getting-started) • [Features](#-features) • [Documentation](#-documentation) • [API](#-api-reference) • [Contributing](#-contributing)
+[Getting Started](#-getting-started) • [Features](#-features) • [Documentation](#-documentation) •
+[API](#-api-reference) • [Contributing](#-contributing)
 
 </div>
 
@@ -18,15 +19,20 @@
 
 ## 📋 Overview
 
-REMS (Real Estate Management System) is a full-stack application designed to handle all aspects of property management, from tenant contracts to maintenance orders, financial tracking, and comprehensive reporting. Built with scalability and internationalization in mind, it supports multiple properties, shared ownership, multi-currency transactions, and complete audit trails.
+REMS (Real Estate Management System) is a full-stack application designed to handle all aspects of
+property management, from tenant contracts to maintenance orders, financial tracking, and
+comprehensive reporting. Built with scalability and internationalization in mind, it supports
+multiple properties, shared ownership, multi-currency transactions, and complete audit trails.
 
 ### 🎯 Key Capabilities
 
-- **Multi-Property Portfolio Management** - Manage unlimited properties with shared ownership structures
+- **Multi-Property Portfolio Management** - Manage unlimited properties with shared ownership
+  structures
 - **Complete Tenant Lifecycle** - From application through contract expiration with payment tracking
 - **Financial Management** - Invoicing, receipts, and multi-currency transaction tracking
 - **Maintenance Workflow** - Request-to-completion tracking with vendor management
-- **Multi-Portal Architecture** - Separate interfaces for owners, tenants, vendors, and administrators
+- **Multi-Portal Architecture** - Separate interfaces for owners, tenants, vendors, and
+  administrators
 - **Audit Compliance** - Complete tracking of all system changes for regulatory compliance
 
 ---
@@ -112,21 +118,22 @@ curl http://localhost:3001/api/v1/health
 
 ### Technology Stack
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Database** | PostgreSQL 15 | Primary data store with advanced features |
-| **Backend** | Node.js 18 + Express | RESTful API server |
-| **Authentication** | JWT | Stateless authentication |
-| **Container** | Docker + Docker Compose | Development environment |
-| **Code Quality** | ESLint + Prettier | Code formatting and linting |
-| **Testing** | Jest + Supertest | Unit and integration testing |
-| **Documentation** | Markdown | Comprehensive documentation |
+| Layer              | Technology              | Purpose                                   |
+| ------------------ | ----------------------- | ----------------------------------------- |
+| **Database**       | PostgreSQL 15           | Primary data store with advanced features |
+| **Backend**        | Node.js 18 + Express    | RESTful API server                        |
+| **Authentication** | JWT                     | Stateless authentication                  |
+| **Container**      | Docker + Docker Compose | Development environment                   |
+| **Code Quality**   | ESLint + Prettier       | Code formatting and linting               |
+| **Testing**        | Jest + Supertest        | Unit and integration testing              |
+| **Documentation**  | Markdown                | Comprehensive documentation               |
 
 ---
 
 ## ✨ Features
 
 ### 🏢 Property Management
+
 - Multi-property portfolios with detailed metadata
 - Shared ownership with percentage tracking
 - Temporal ownership periods for historical tracking
@@ -134,6 +141,7 @@ curl http://localhost:3001/api/v1/health
 - Property valuation tracking with multiple methods
 
 ### 👥 Tenant Management
+
 - Individual and corporate tenant profiles
 - Dual-tenant contracts for couples/roommates
 - Contract lifecycle management (upcoming → active → expired)
@@ -141,11 +149,11 @@ curl http://localhost:3001/api/v1/health
 - International tenant support (10+ nationalities in seed data)
 
 ### 💰 Financial Management
+
 - **Invoicing System**
   - Polymorphic invoices (rent, maintenance, utilities)
   - Recurring invoice automation
   - Multi-currency support (KWD, USD, EUR, etc.)
-  
 - **Payment Processing**
   - Multiple payment gateways (KNET, MyFatoorah, bank transfers)
   - Receipt generation with provider fees tracking
@@ -157,6 +165,7 @@ curl http://localhost:3001/api/v1/health
   - Comprehensive financial reporting
 
 ### 🔧 Maintenance & Vendors
+
 - Maintenance request workflow (submitted → approved → completed)
 - Vendor management with performance ratings
 - Emergency service availability tracking
@@ -164,6 +173,7 @@ curl http://localhost:3001/api/v1/health
 - Dual-requestor support (tenant or owner initiated)
 
 ### 👤 User & Security
+
 - Role-based access control (Admin, Owner, Tenant, Vendor)
 - JWT-based authentication
 - Session management
@@ -172,6 +182,7 @@ curl http://localhost:3001/api/v1/health
 - Two-factor authentication ready
 
 ### 📊 Reporting & Analytics
+
 - Dashboard with key metrics
 - Occupancy rate tracking
 - Income and expense reports
@@ -180,6 +191,7 @@ curl http://localhost:3001/api/v1/health
 - Custom report generation
 
 ### 🔍 Audit & Compliance
+
 - Complete audit trail for all changes
 - Login history tracking
 - System event logging
@@ -233,16 +245,16 @@ rems/
 
 The database consists of **23 tables** organized into **10 logical modules**:
 
-| Module | Tables | Description |
-|--------|--------|-------------|
-| **Property & Ownership** | 4 | Properties, units, and ownership periods |
-| **Tenant & Contracts** | 2 | Tenants and rental agreements |
-| **Financial Classification** | 2 | Expense categories and types |
-| **Vendors & Maintenance** | 2 | Service providers and work orders |
-| **Financial Transactions** | 4 | Invoices, receipts, and transactions |
-| **Users & Authentication** | 3 | Users, sessions, and password resets |
-| **System Configuration** | 4 | Settings, currencies, templates, notifications |
-| **Audit & Logging** | 3 | Entity changes, login history, system logs |
+| Module                       | Tables | Description                                    |
+| ---------------------------- | ------ | ---------------------------------------------- |
+| **Property & Ownership**     | 4      | Properties, units, and ownership periods       |
+| **Tenant & Contracts**       | 2      | Tenants and rental agreements                  |
+| **Financial Classification** | 2      | Expense categories and types                   |
+| **Vendors & Maintenance**    | 2      | Service providers and work orders              |
+| **Financial Transactions**   | 4      | Invoices, receipts, and transactions           |
+| **Users & Authentication**   | 3      | Users, sessions, and password resets           |
+| **System Configuration**     | 4      | Settings, currencies, templates, notifications |
+| **Audit & Logging**          | 3      | Entity changes, login history, system logs     |
 
 ### Key Design Patterns
 
@@ -258,30 +270,33 @@ The database consists of **23 tables** organized into **10 logical modules**:
 The RESTful API provides comprehensive endpoints for all system operations.
 
 ### Base URL
+
 ```
 Development: http://localhost:3001/api/v1
 Production:  https://api.your-domain.com/api/v1
 ```
 
 ### Authentication
+
 All endpoints (except login) require JWT authentication:
+
 ```
 Authorization: Bearer <jwt-token>
 ```
 
 ### Core Endpoints
 
-| Module | Endpoints | Description |
-|--------|-----------|-------------|
-| **Auth** | `/auth/login`, `/auth/logout`, `/auth/profile` | Authentication & user management |
-| **Properties** | `/properties`, `/properties/:id/units` | Property CRUD operations |
-| **Tenants** | `/tenants`, `/tenants/:id/contracts` | Tenant management |
-| **Contracts** | `/contracts`, `/contracts/active` | Rental agreement management |
-| **Invoices** | `/invoices`, `/invoices/:id/send` | Invoice generation and management |
-| **Maintenance** | `/maintenance`, `/maintenance/:id/assign` | Work order management |
-| **Reports** | `/reports/occupancy`, `/reports/income` | Analytics and reporting |
+| Module          | Endpoints                                      | Description                       |
+| --------------- | ---------------------------------------------- | --------------------------------- |
+| **Auth**        | `/auth/login`, `/auth/logout`, `/auth/profile` | Authentication & user management  |
+| **Properties**  | `/properties`, `/properties/:id/units`         | Property CRUD operations          |
+| **Tenants**     | `/tenants`, `/tenants/:id/contracts`           | Tenant management                 |
+| **Contracts**   | `/contracts`, `/contracts/active`              | Rental agreement management       |
+| **Invoices**    | `/invoices`, `/invoices/:id/send`              | Invoice generation and management |
+| **Maintenance** | `/maintenance`, `/maintenance/:id/assign`      | Work order management             |
+| **Reports**     | `/reports/occupancy`, `/reports/income`        | Analytics and reporting           |
 
-📚 **[Full API Documentation](docs/API_ENDPOINTS.md)**
+📚 **[Full API Documentation](docs/development/api/api_endpoints.md)**
 
 ---
 
@@ -289,13 +304,20 @@ Authorization: Bearer <jwt-token>
 
 Comprehensive documentation is available for all aspects of the system:
 
-| Document | Description |
-|----------|-------------|
-| 📘 **[Database Schema](docs/database_docs/001_schema_documentation.md)** | Complete database structure and relationships |
-| 📗 **[Seed Data Guide](docs/database_docs/002_seed_data_documentation.md)** | Test data documentation with usage examples |
-| 📙 **[API Endpoints](docs/API_ENDPOINTS.md)** | RESTful API documentation with examples |
-| 📕 **[Docker Environment](docs/DOCKER_ENVIRONMENT.md)** | Container setup and management guide |
-| 📓 **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** | Configuration options and setup |
+| Document                                                                                               | Description                                            |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| 📘 **[Database Schema](docs/database/schema/schema_documentation.md)**                                 | Complete database structure and relationships          |
+| 📗 **[Seed Data Guide](docs/database/seed_data/seed_data_documentation.md)**                           | Test data documentation with usage examples            |
+| 📙 **[API Endpoints](docs/development/api/api_endpoints.md)**                                          | RESTful API documentation with examples                |
+| 📕 **[Docker Environment](docs/development/docker/docker_environment.md)**                             | Container setup and management guide                   |
+| 📓 **[Environment Variables](docs/development/setup/environment_variables.md)**                        | Configuration options and setup                        |
+| 🏗️ **[Schema Updates](docs/database/schema/schema_update_specification.md)**                           | Database schema update requirements and specifications |
+| 🎨 **[Admin Portal Wireframes](docs/development/wireframes/1_admin_portal/)**                          | Admin interface design specifications and journey maps |
+| 💼 **[Accountant Portal Wireframes](docs/development/wireframes/2_accountant_portal/)**                | Financial management interface specifications          |
+| 👤 **[Owner Portal Wireframes](docs/development/wireframes/3_owner_portal/)**                          | Property owner interface wireframes and specifications |
+| 🏠 **[Tenant Portal Wireframes](docs/development/wireframes/4_tenant_portal/)**                        | Tenant interface design and user journey documentation |
+| 📋 **[Project Status](docs/project_management/status/current_status.md)**                              | Current development status and progress tracking       |
+| 🚀 **[Implementation Plan](docs/project_management/planning/rems_backend_api_implementation_plan.md)** | Backend API development roadmap and planning           |
 
 ---
 
@@ -316,6 +338,7 @@ npm test -- --testPathPattern=properties
 ```
 
 ### Test Coverage Goals
+
 - Unit Tests: 80% coverage
 - Integration Tests: Core workflows
 - E2E Tests: Critical user journeys
@@ -350,6 +373,7 @@ npm run lint:fix
    - Hotfix: `hotfix/description`
 
 2. **Commit Messages** (Conventional Commits)
+
    ```
    feat: add property search functionality
    fix: resolve date validation in contracts
@@ -414,14 +438,14 @@ git push origin feature/your-feature
 
 ### Roadmap
 
-| Version | Features | Timeline |
-|---------|----------|----------|
+| Version    | Features                        | Timeline    |
+| ---------- | ------------------------------- | ----------- |
 | **v0.1.0** | Database, Docker, Documentation | ✅ Complete |
-| **v0.2.0** | Core API endpoints | In Progress |
-| **v0.3.0** | Authentication & Authorization | Q1 2024 |
-| **v0.4.0** | Financial Management | Q2 2024 |
-| **v0.5.0** | Frontend Foundation | Q2 2024 |
-| **v1.0.0** | Production Ready | Q3 2024 |
+| **v0.2.0** | Core API endpoints              | In Progress |
+| **v0.3.0** | Authentication & Authorization  | Q1 2024     |
+| **v0.4.0** | Financial Management            | Q2 2024     |
+| **v0.5.0** | Frontend Foundation             | Q2 2024     |
+| **v1.0.0** | Production Ready                | Q3 2024     |
 
 ---
 
@@ -434,6 +458,7 @@ git push origin feature/your-feature
 Email: security@aalbahar.com
 
 Include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
