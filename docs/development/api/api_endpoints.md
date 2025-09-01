@@ -20,7 +20,8 @@
 
 The REMS API provides a comprehensive RESTful interface for managing all aspects of the real estate
 management system. Built on Node.js with Express, it interfaces with the PostgreSQL database
-containing 23 tables across 10 business modules.
+containing 95 database objects (35 base tables + 60 portal views) with full multi-tenant
+architecture supporting firm-based data isolation and role-based access control.
 
 ### Base URL
 
@@ -90,6 +91,10 @@ Future versions will maintain backward compatibility or provide migration guides
 
 **Token Expiration:** 24 hours (configurable)
 
+**Multi-Tenant Context:** All authenticated requests include firm context for data isolation
+
+**Firm Header:** `X-Firm-Id: <firm-id>` (optional - defaults to user's primary firm)
+
 ---
 
 ## Authentication Endpoints
@@ -119,9 +124,18 @@ POST /api/v1/auth/login
     "user": {
       "id": 1,
       "email": "user@example.com",
+      "username": "john_doe",
       "user_type": "owner",
-      "full_name": "John Doe"
+      "is_active": true
     },
+    "firms": [
+      {
+        "firm_id": 1,
+        "firm_name": "Kuwait Properties LLC",
+        "role": "admin",
+        "is_primary": true
+      }
+    ],
     "expires_in": "24h"
   }
 }
@@ -161,7 +175,7 @@ PUT /api/v1/auth/profile
 
 ```json
 {
-  "full_name": "John Smith",
+  "username": "john_smith",
   "phone": "+965-9999-0001",
   "preferred_language": "en"
 }
@@ -215,6 +229,7 @@ GET /api/v1/properties
 - `location` (filter by location)
 - `property_type` (residential, commercial, mixed_use)
 - `is_active` (true, false)
+- `firm_id` (optional - filter by firm, defaults to user's accessible firms)
 
 **Response:**
 
@@ -230,7 +245,9 @@ GET /api/v1/properties
         "location": "Salmiya",
         "total_units": 5,
         "property_type": "residential",
-        "valuation_amount": 1571785.71
+        "valuation_amount": 1571785.71,
+        "firm_id": 1,
+        "firm_name": "Kuwait Properties LLC"
       }
     ],
     "pagination": {
@@ -251,10 +268,11 @@ GET /api/v1/properties/:id
 
 **Response includes:**
 
-- Property details
-- Current ownership information
-- Unit summary
+- Property details with firm context
+- Current ownership information (individual vs firm-default)
+- Unit summary with occupancy status
 - Active contracts count
+- Approval workflow status
 
 ### Create Property
 
@@ -272,7 +290,8 @@ POST /api/v1/properties
   "address": "Block 4, Street 15",
   "area_sqm": 1200.5,
   "property_type": "residential",
-  "construction_year": 2020
+  "construction_year": 2020,
+  "firm_id": 1
 }
 ```
 
@@ -302,6 +321,12 @@ GET /api/v1/properties/:id/units
 GET /api/v1/properties/:id/owners
 ```
 
+**Response includes ownership breakdown:**
+
+- Individual ownership percentages
+- Firm-default ownership (when no individual owners assigned)
+- Ownership validation status (total ≤ 100%)
+
 ### Search Properties
 
 ```http
@@ -330,6 +355,7 @@ GET /api/v1/tenants
 - `nationality`
 - `has_active_contract` (true, false)
 - `search` (name, email, phone)
+- `firm_id` (optional - filter by firm, defaults to user's accessible firms)
 
 ### Get Tenant Details
 
@@ -354,7 +380,8 @@ POST /api/v1/tenants
   "mobile": "+965-9999-1234",
   "email": "ahmed@example.com",
   "national_id_type": "civil_id",
-  "national_id": "290010012345"
+  "national_id": "290010012345",
+  "firm_id": 1
 }
 ```
 
@@ -376,6 +403,27 @@ GET /api/v1/tenants/:id/contracts
 GET /api/v1/tenants/:id/payments
 ```
 
+### Get Tenant Portal Preferences
+
+```http
+GET /api/v1/tenants/:id/preferences
+PUT /api/v1/tenants/:id/preferences
+```
+
+**Request Body for preferences update:**
+
+```json
+{
+  "payment_method": "bank_transfer",
+  "notification_preferences": {
+    "email": true,
+    "sms": false,
+    "push": true
+  },
+  "communication_language": "en"
+}
+```
+
 ---
 
 ## Financial Management
@@ -394,6 +442,7 @@ GET /api/v1/invoices
 - `invoice_type` (rental, expense, deposit, late_fee)
 - `entity_type` (rental_contract, maintenance_order)
 - `date_from`, `date_to`
+- `firm_id` (optional - filter by firm, defaults to user's accessible firms)
 
 #### Create Invoice
 
@@ -482,9 +531,17 @@ POST /api/v1/transactions/expenses
   "vendor_id": 3,
   "amount": 150.0,
   "description": "Plumbing repair",
-  "expense_date": "2024-01-15"
+  "expense_date": "2024-01-15",
+  "requires_approval": true,
+  "approval_threshold": 100.0
 }
 ```
+
+**Note:** Expenses above the approval threshold trigger the intelligent approval workflow:
+
+- **Individual ownership**: Routes to property owner
+- **Firm-default ownership**: Routes to firm admin
+- **72-hour escalation**: Auto-escalates if no response
 
 ---
 
@@ -502,6 +559,7 @@ GET /api/v1/maintenance
 - `priority` (low, medium, high, emergency)
 - `requestor_type` (tenant, owner)
 - `property_id`
+- `firm_id` (optional - filter by firm, defaults to user's accessible firms)
 
 ### Create Maintenance Order
 
@@ -568,6 +626,23 @@ PUT /api/v1/maintenance/:id/status
 GET /api/v1/maintenance/pending
 ```
 
+### Rate Maintenance Service (Tenant Portal)
+
+```http
+POST /api/v1/maintenance/:id/rating
+```
+
+**Request Body:**
+
+```json
+{
+  "rating": 4,
+  "feedback": "Quick response and professional service",
+  "service_quality": 4,
+  "timeliness": 5
+}
+```
+
 ---
 
 ## Reporting & Analytics
@@ -577,6 +652,11 @@ GET /api/v1/maintenance/pending
 ```http
 GET /api/v1/dashboard/overview
 ```
+
+**Query Parameters:**
+
+- `firm_id` (optional - defaults to user's accessible firms)
+- `portal_type` (admin, accountant, owner, tenant)
 
 **Response:**
 
@@ -591,7 +671,13 @@ GET /api/v1/dashboard/overview
     "monthly_income": 12500.0,
     "pending_maintenance": 5,
     "overdue_payments": 3,
-    "expiring_contracts": 2
+    "expiring_contracts": 2,
+    "pending_approvals": 4,
+    "roi_analytics": {
+      "average_roi": 8.5,
+      "best_performing_property": "Richardson Tower One",
+      "portfolio_growth": 12.3
+    }
   }
 }
 ```
@@ -607,6 +693,7 @@ GET /api/v1/reports/occupancy
 - `property_id` (optional)
 - `date_from`, `date_to`
 - `group_by` (property, month)
+- `firm_id` (optional - defaults to user's accessible firms)
 
 ### Income Report
 
@@ -619,6 +706,7 @@ GET /api/v1/reports/income
 - `year` (required)
 - `month` (optional)
 - `property_id` (optional)
+- `firm_id` (optional - defaults to user's accessible firms)
 
 ### Expense Report
 
@@ -631,6 +719,7 @@ GET /api/v1/reports/expenses
 - `date_from`, `date_to`
 - `category_id`
 - `property_id`
+- `firm_id` (optional - defaults to user's accessible firms)
 
 ### Maintenance Report
 
@@ -646,9 +735,10 @@ GET /api/v1/analytics/trends
 
 **Query Parameters:**
 
-- `metric` (income, expenses, occupancy)
+- `metric` (income, expenses, occupancy, roi, approvals)
 - `period` (monthly, quarterly, yearly)
 - `year`
+- `firm_id` (optional - defaults to user's accessible firms)
 
 ---
 
@@ -660,6 +750,40 @@ GET /api/v1/analytics/trends
 GET /api/v1/system/settings
 PUT /api/v1/system/settings
 ```
+
+**Multi-tenant settings include:**
+
+- Firm-specific configurations
+- Approval thresholds per firm
+- Portal customizations
+
+### Firm Management (Admin Portal)
+
+```http
+GET /api/v1/firms
+POST /api/v1/firms
+PUT /api/v1/firms/:id
+```
+
+### User-Firm Assignments
+
+```http
+GET /api/v1/firms/:id/users
+POST /api/v1/firms/:id/users
+DELETE /api/v1/firms/:id/users/:user_id
+```
+
+**Request Body for user assignment:**
+
+```json
+{
+  "user_id": 5,
+  "role": "admin",
+  "is_primary": true
+}
+```
+
+**Available roles:** admin, accountant, manager, staff, readonly
 
 ### Currencies
 
@@ -679,6 +803,7 @@ GET /api/v1/audit/logs
 - `entity_id`
 - `operation_type` (INSERT, UPDATE, DELETE)
 - `date_from`, `date_to`
+- `firm_id` (optional - defaults to user's accessible firms)
 
 ### Notifications
 
@@ -689,7 +814,8 @@ GET /api/v1/notifications
 **Query Parameters:**
 
 - `is_read` (true, false)
-- `type` (info, warning, error, maintenance)
+- `type` (info, warning, error, maintenance, approval, payment)
+- `firm_id` (optional - defaults to user's accessible firms)
 
 ### Mark Notification as Read
 
@@ -734,6 +860,7 @@ POST /api/v1/upload
 | `AUTH_REQUIRED`           | Authentication required  | Missing token                    |
 | `AUTH_INVALID`            | Invalid authentication   | Expired token                    |
 | `PERMISSION_DENIED`       | Insufficient permissions | Tenant accessing owner endpoints |
+| `FIRM_ACCESS_DENIED`      | No access to firm data   | User not assigned to firm        |
 | `VALIDATION_ERROR`        | Input validation failed  | Invalid email format             |
 | `NOT_FOUND`               | Resource not found       | Property doesn't exist           |
 | `DUPLICATE_ENTRY`         | Duplicate data           | Email already exists             |
@@ -890,8 +1017,46 @@ Planned webhook events:
 - `payment.received`
 - `maintenance.completed`
 - `invoice.overdue`
+- `approval.required`
+- `approval.approved`
+- `firm.user_assigned`
 
 ---
 
-_Last Updated: [23/08/2025]_  
-_API Version: 1.0_
+---
+
+## Multi-Tenant API Guidance
+
+### Key Concepts
+
+1. **Firm Context**: All API calls operate within a firm context for data isolation
+2. **Role-Based Access**: User permissions vary by firm and role assignment
+3. **Automatic Filtering**: Data is automatically filtered by user's accessible firms
+4. **Portal-Specific Views**: Different portals access different data subsets
+
+### Authentication Flow
+
+1. User logs in → receives JWT token with firm assignments
+2. API calls include firm context (explicit header or inferred from token)
+3. Backend filters all queries by user's accessible firms
+4. Role-based permissions apply within each firm context
+
+### Data Isolation Patterns
+
+- **Properties**: Filtered by `property.firm_id`
+- **Tenants**: Filtered by `tenant.firm_id`
+- **Invoices**: Filtered through property/tenant firm associations
+- **Maintenance**: Filtered through property firm associations
+- **Analytics**: Aggregated within firm boundaries
+
+### Portal Development Guidelines
+
+1. **Admin Portal**: Full firm management + system administration
+2. **Accountant Portal**: Financial operations across assigned firms
+3. **Owner Portal**: Property-specific data based on ownership percentages
+4. **Tenant Portal**: Limited to tenant's own data + communication features
+
+---
+
+_Last Updated: [01/09/2025]_  
+_API Version: 1.1 - Multi-Tenant Architecture_
