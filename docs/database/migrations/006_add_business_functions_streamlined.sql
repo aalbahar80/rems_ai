@@ -325,15 +325,15 @@ BEGIN
     FROM firms f
     LEFT JOIN (
         SELECT 
-            firm_id,
+            rt.firm_id,
             SUM(CASE WHEN transaction_date >= date_trunc('month', CURRENT_DATE) THEN actual_rent ELSE 0 END) as monthly_income,
             SUM(CASE WHEN transaction_date >= date_trunc('year', CURRENT_DATE) THEN actual_rent ELSE 0 END) as yearly_income,
             AVG(monthly_total.monthly_amount) as avg_monthly_income
         FROM rental_transactions rt
         LEFT JOIN (
-            SELECT firm_id, date_trunc('month', transaction_date) as month, SUM(actual_rent) as monthly_amount
-            FROM rental_transactions 
-            GROUP BY firm_id, date_trunc('month', transaction_date)
+            SELECT rt_inner.firm_id, date_trunc('month', rt_inner.transaction_date) as month, SUM(rt_inner.actual_rent) as monthly_amount
+            FROM rental_transactions rt_inner
+            GROUP BY rt_inner.firm_id, date_trunc('month', rt_inner.transaction_date)
         ) monthly_total ON rt.firm_id = monthly_total.firm_id
         GROUP BY rt.firm_id
     ) income_data ON f.firm_id = income_data.firm_id
