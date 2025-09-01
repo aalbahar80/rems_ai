@@ -187,17 +187,16 @@ export default function ExpenseCategoriesPage() {
                   .map((category) => (
                     <div
                       key={category.id}
+                      onClick={() => toggleCategory(category.id)}
                       className={cn(
-                        'flex items-center justify-between p-4 border rounded-lg transition-colors',
+                        'flex items-center justify-between p-4 border rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md',
                         category.isSelected
-                          ? 'border-admin-200 bg-admin-50'
-                          : 'border-gray-200 bg-gray-50'
+                          ? 'border-admin-300 bg-admin-100 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
                       )}
                     >
                       <div className="flex items-center space-x-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleCategory(category.id)}
+                        <div
                           className={cn(
                             'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
                             category.isSelected
@@ -208,13 +207,13 @@ export default function ExpenseCategoriesPage() {
                           {category.isSelected && (
                             <Check className="h-3 w-3 text-white" />
                           )}
-                        </button>
+                        </div>
 
                         <span
                           className={cn(
                             'font-medium',
                             category.isSelected
-                              ? 'text-foreground'
+                              ? 'text-admin-800'
                               : 'text-muted-foreground'
                           )}
                         >
@@ -224,28 +223,40 @@ export default function ExpenseCategoriesPage() {
 
                       {/* Tax Deductible Toggle */}
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs text-muted-foreground">
+                        <span
+                          className={cn(
+                            'text-xs font-medium',
+                            category.isSelected
+                              ? 'text-admin-700'
+                              : 'text-muted-foreground'
+                          )}
+                        >
                           Tax-Deductible:
                         </span>
                         <button
                           type="button"
-                          onClick={() => toggleTaxDeductible(category.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTaxDeductible(category.id);
+                          }}
                           disabled={!category.isSelected}
                           className={cn(
-                            'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
+                            'relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-200 border',
                             category.isTaxDeductible && category.isSelected
-                              ? 'bg-admin-500'
-                              : 'bg-gray-300',
+                              ? 'bg-admin-500 border-admin-600'
+                              : category.isSelected
+                                ? 'bg-gray-200 border-gray-300 hover:bg-gray-300'
+                                : 'bg-gray-100 border-gray-200',
                             !category.isSelected &&
                               'opacity-50 cursor-not-allowed'
                           )}
                         >
                           <span
                             className={cn(
-                              'inline-block h-3 w-3 transform rounded-full bg-white transition-transform',
+                              'inline-block h-3 w-3 transform rounded-full transition-transform shadow-sm',
                               category.isTaxDeductible
-                                ? 'translate-x-5'
-                                : 'translate-x-1'
+                                ? 'translate-x-5 bg-white'
+                                : 'translate-x-1 bg-white'
                             )}
                           />
                         </button>
@@ -355,12 +366,13 @@ export default function ExpenseCategoriesPage() {
                   .map((category) => (
                     <div
                       key={category.id}
-                      className="flex items-center justify-between p-4 border rounded-lg border-admin-200 bg-admin-50"
+                      className="flex items-center justify-between p-4 border rounded-lg border-admin-300 bg-admin-100 shadow-sm"
                     >
-                      <div className="flex items-center space-x-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleCategory(category.id)}
+                      <div
+                        onClick={() => toggleCategory(category.id)}
+                        className="flex items-center space-x-3 flex-1 text-left cursor-pointer"
+                      >
+                        <div
                           className={cn(
                             'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
                             category.isSelected
@@ -371,9 +383,11 @@ export default function ExpenseCategoriesPage() {
                           {category.isSelected && (
                             <Check className="h-3 w-3 text-white" />
                           )}
-                        </button>
+                        </div>
 
-                        <span className="font-medium">{category.name}</span>
+                        <span className="font-medium text-admin-800">
+                          {category.name}
+                        </span>
 
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                           Custom
@@ -383,22 +397,25 @@ export default function ExpenseCategoriesPage() {
                       <div className="flex items-center space-x-3">
                         {/* Tax Deductible Toggle */}
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs font-medium text-admin-700">
                             Tax-Deductible:
                           </span>
                           <button
                             type="button"
-                            onClick={() => toggleTaxDeductible(category.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTaxDeductible(category.id);
+                            }}
                             className={cn(
-                              'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
+                              'relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-200 border',
                               category.isTaxDeductible
-                                ? 'bg-admin-500'
-                                : 'bg-gray-300'
+                                ? 'bg-admin-500 border-admin-600'
+                                : 'bg-gray-200 border-gray-300 hover:bg-gray-300'
                             )}
                           >
                             <span
                               className={cn(
-                                'inline-block h-3 w-3 transform rounded-full bg-white transition-transform',
+                                'inline-block h-3 w-3 transform rounded-full transition-transform shadow-sm bg-white',
                                 category.isTaxDeductible
                                   ? 'translate-x-5'
                                   : 'translate-x-1'
@@ -412,7 +429,10 @@ export default function ExpenseCategoriesPage() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeCustomCategory(category.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeCustomCategory(category.id);
+                          }}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <X className="h-4 w-4" />
