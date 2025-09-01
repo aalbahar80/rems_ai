@@ -235,20 +235,24 @@ export default function BusinessRulesPage() {
                   return (
                     <div
                       key={workflow.type}
-                      className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50"
+                      className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                     >
                       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-admin-100 text-admin-600">
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium">{workflow.name}</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <h4 className="font-medium dark:text-gray-100">
+                          {workflow.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground dark:text-gray-300">
                           {workflow.description}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">{range}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm font-medium dark:text-gray-100">
+                          {range}
+                        </p>
+                        <p className="text-xs text-muted-foreground dark:text-gray-300">
                           Amount Range
                         </p>
                       </div>
@@ -334,10 +338,10 @@ export default function BusinessRulesPage() {
                           )
                         }
                         className={cn(
-                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                           rules.enableAutoApproval
-                            ? 'bg-admin-500'
-                            : 'bg-gray-300'
+                            ? 'bg-admin-500 border-admin-600'
+                            : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                         )}
                       >
                         <span
@@ -367,10 +371,10 @@ export default function BusinessRulesPage() {
                           )
                         }
                         className={cn(
-                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                           rules.requireOwnerApproval
-                            ? 'bg-admin-500'
-                            : 'bg-gray-300'
+                            ? 'bg-admin-500 border-admin-600'
+                            : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                         )}
                       >
                         <span
@@ -512,10 +516,10 @@ export default function BusinessRulesPage() {
                       )
                     }
                     className={cn(
-                      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                       rules.enableLatePaymentReminders
-                        ? 'bg-admin-500'
-                        : 'bg-gray-300'
+                        ? 'bg-admin-500 border-admin-600'
+                        : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                     )}
                   >
                     <span
@@ -572,10 +576,10 @@ export default function BusinessRulesPage() {
                     )
                   }
                   className={cn(
-                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                     rules.enableMaintenanceReminders
-                      ? 'bg-admin-500'
-                      : 'bg-gray-300'
+                      ? 'bg-admin-500 border-admin-600'
+                      : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                   )}
                 >
                   <span
@@ -607,10 +611,10 @@ export default function BusinessRulesPage() {
                       )
                     }
                     className={cn(
-                      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                       rules.enableLeaseExpirationAlerts
-                        ? 'bg-admin-500'
-                        : 'bg-gray-300'
+                        ? 'bg-admin-500 border-admin-600'
+                        : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                     )}
                   >
                     <span
@@ -671,10 +675,10 @@ export default function BusinessRulesPage() {
                         )
                       }
                       className={cn(
-                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                         rules.enableEmailNotifications
-                          ? 'bg-admin-500'
-                          : 'bg-gray-300'
+                          ? 'bg-admin-500 border-admin-600'
+                          : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                       )}
                     >
                       <span
@@ -709,10 +713,10 @@ export default function BusinessRulesPage() {
                         )
                       }
                       className={cn(
-                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                         rules.enableSMSNotifications
-                          ? 'bg-admin-500'
-                          : 'bg-gray-300'
+                          ? 'bg-admin-500 border-admin-600'
+                          : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                       )}
                     >
                       <span
@@ -747,10 +751,10 @@ export default function BusinessRulesPage() {
                         )
                       }
                       className={cn(
-                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-2',
                         rules.enablePushNotifications
-                          ? 'bg-admin-500'
-                          : 'bg-gray-300'
+                          ? 'bg-admin-500 border-admin-600'
+                          : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
                       )}
                     >
                       <span

@@ -191,8 +191,8 @@ export default function ExpenseCategoriesPage() {
                       className={cn(
                         'flex items-center justify-between p-4 border rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md',
                         category.isSelected
-                          ? 'border-admin-300 bg-admin-100 shadow-sm'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-admin-300 bg-admin-100 shadow-sm dark:bg-admin-900/20 dark:border-admin-600 dark:text-admin-100'
+                          : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
                       )}
                     >
                       <div className="flex items-center space-x-3">
@@ -213,7 +213,7 @@ export default function ExpenseCategoriesPage() {
                           className={cn(
                             'font-medium',
                             category.isSelected
-                              ? 'text-admin-800'
+                              ? 'text-admin-800 dark:text-admin-100'
                               : 'text-muted-foreground'
                           )}
                         >
@@ -227,7 +227,7 @@ export default function ExpenseCategoriesPage() {
                           className={cn(
                             'text-xs font-medium',
                             category.isSelected
-                              ? 'text-admin-700'
+                              ? 'text-admin-700 dark:text-admin-200'
                               : 'text-muted-foreground'
                           )}
                         >
@@ -366,7 +366,7 @@ export default function ExpenseCategoriesPage() {
                   .map((category) => (
                     <div
                       key={category.id}
-                      className="flex items-center justify-between p-4 border rounded-lg border-admin-300 bg-admin-100 shadow-sm"
+                      className="flex items-center justify-between p-4 border rounded-lg border-admin-300 bg-admin-100 shadow-sm dark:bg-admin-900/20 dark:border-admin-600"
                     >
                       <div
                         onClick={() => toggleCategory(category.id)}
@@ -385,7 +385,7 @@ export default function ExpenseCategoriesPage() {
                           )}
                         </div>
 
-                        <span className="font-medium text-admin-800">
+                        <span className="font-medium text-admin-800 dark:text-admin-100">
                           {category.name}
                         </span>
 
@@ -397,7 +397,7 @@ export default function ExpenseCategoriesPage() {
                       <div className="flex items-center space-x-3">
                         {/* Tax Deductible Toggle */}
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs font-medium text-admin-700">
+                          <span className="text-xs font-medium text-admin-700 dark:text-admin-200">
                             Tax-Deductible:
                           </span>
                           <button

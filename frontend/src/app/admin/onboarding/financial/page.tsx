@@ -230,14 +230,23 @@ export default function FinancialSettingsPage() {
                         className={cn(
                           'flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all duration-200',
                           settings.additionalCurrencies.includes(currency.code)
-                            ? 'border-admin-300 bg-admin-100'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                            ? 'border-admin-300 bg-admin-100 dark:bg-admin-900/20 dark:border-admin-600 dark:text-admin-100'
+                            : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
                         )}
                       >
                         <div className="flex items-center space-x-3">
                           <span className="text-lg">{currency.flag}</span>
                           <div>
-                            <p className="text-sm font-medium">
+                            <p
+                              className={cn(
+                                'text-sm font-medium',
+                                settings.additionalCurrencies.includes(
+                                  currency.code
+                                )
+                                  ? 'dark:text-admin-100'
+                                  : 'dark:text-gray-100'
+                              )}
+                            >
                               {currency.code}
                             </p>
                             <p className="text-xs text-muted-foreground">

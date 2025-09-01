@@ -94,35 +94,36 @@ export default function OnboardingCompletePage() {
 
   const nextSteps: NextStep[] = [
     {
-      id: 'properties',
-      title: 'Add Your First Property',
-      description: 'Start by adding properties to your portfolio',
-      icon: Building2,
-      href: '/admin/properties/add',
+      id: 'accountants',
+      title: 'Assign Accountants to Firm',
+      description:
+        'Add accountants who will manage property data entry and operations',
+      icon: Users,
+      href: '/admin/users',
       priority: 'high',
     },
     {
-      id: 'tenants',
-      title: 'Manage Tenants',
-      description: 'Add tenants and set up lease agreements',
-      icon: Users,
-      href: '/admin/tenants',
+      id: 'integrations',
+      title: 'Setup Payment Integrations',
+      description: 'Configure KNET, Myfatoorah and other payment gateways',
+      icon: Zap,
+      href: '/admin/integrations',
       priority: 'high',
     },
     {
       id: 'dashboard',
-      title: 'Explore Dashboard',
-      description: 'View your property management overview',
+      title: 'Monitor System Health',
+      description: 'View system status and user activity dashboard',
       icon: Target,
       href: '/admin',
       priority: 'medium',
     },
     {
-      id: 'integrations',
-      title: 'Setup Integrations',
-      description: 'Connect payment gateways and accounting systems',
-      icon: Zap,
-      href: '/admin/integrations',
+      id: 'settings',
+      title: 'Configure System Settings',
+      description: 'Adjust firm-wide configurations and email templates',
+      icon: Settings,
+      href: '/admin/settings',
       priority: 'medium',
     },
   ];
@@ -325,19 +326,19 @@ export default function OnboardingCompletePage() {
                     <button
                       key={step.id}
                       onClick={() => handleQuickAction(step.href)}
-                      className="flex items-start space-x-4 p-4 border rounded-lg text-left hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group"
+                      className="flex items-start space-x-4 p-4 border rounded-lg text-left hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group dark:text-gray-100 dark:hover:text-gray-900"
                     >
                       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-200 transition-colors">
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 mb-1">
+                        <h4 className="font-medium text-gray-900 mb-1 group-hover:text-gray-900 dark:text-gray-100 dark:group-hover:text-gray-900">
                           {step.title}
                         </h4>
                         <p className="text-sm text-muted-foreground">
                           {step.description}
                         </p>
-                        <div className="flex items-center mt-2 text-purple-600 text-sm font-medium">
+                        <div className="flex items-center mt-2 text-purple-600 text-sm font-medium group-hover:text-purple-700">
                           <span>Configure</span>
                           <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
                         </div>
@@ -368,23 +369,23 @@ export default function OnboardingCompletePage() {
                 <h4 className="font-medium text-admin-800 mb-2">
                   Quick Start Tips
                 </h4>
-                <ul className="text-sm text-admin-700 space-y-1">
+                <ul className="text-sm text-admin-700 space-y-1 dark:text-admin-300">
                   <li>
-                    • Start by adding 1-2 properties to get familiar with the
-                    system
+                    • Start by assigning accountants who will handle property
+                    data entry
                   </li>
                   <li>
-                    • Invite key team members early to establish workflows
+                    • Configure payment integrations before accountants begin
+                    operations
                   </li>
                   <li>
-                    • Set up payment integrations before onboarding tenants
+                    • Set up user accounts and permissions for your team members
                   </li>
                   <li>
-                    • Use the dashboard to monitor key metrics and system health
+                    • Monitor system health and user activity through the admin
+                    dashboard
                   </li>
-                  <li>
-                    • Check the help documentation for detailed feature guides
-                  </li>
+                  <li>• Review audit logs and system performance regularly</li>
                 </ul>
               </div>
             </div>
@@ -412,10 +413,10 @@ export default function OnboardingCompletePage() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => handleQuickAction('/admin/properties/add')}
+            onClick={() => handleQuickAction('/admin/users')}
             className="min-w-[200px]"
           >
-            Add First Property
+            Manage Users
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
