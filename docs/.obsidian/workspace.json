@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "project_management/progress/session_20250901_183000.md",
+                "file": "database/ddl/database_overview.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "session_20250901_183000"
+              "title": "database_overview"
             }
           }
         ]
@@ -171,8 +171,18 @@
   },
   "active": "1c4676bce4c62346",
   "lastOpenFiles": [
-    "project_management/progress/session_20250901_141500.md",
+    "project_management/progress/session_20250902_133541.md",
+    "database/ddl/07_business_intelligence_views.md",
+    "database/ddl/outdated_rems_bd_structure_1.md",
+    "database/ddl/database_overview.md",
+    "database/ddl/06_system_infrastructure.md",
+    "database/ddl/05_user_authentication.md",
+    "database/ddl/04_multi_tenant_system.md",
+    "database/ddl/03_maintenance_workflow.md",
+    "database/ddl/02_financial_system.md",
+    "database/ddl/01_core_entities.md",
     "project_management/progress/session_20250901_183000.md",
+    "project_management/progress/session_20250901_141500.md",
     "project_management/progress/session_20250830_123000.md",
     "project_management/progress/session_20250829_132100.md",
     "development_enviroment/ENVIRONMENT_VARIABLES.md",

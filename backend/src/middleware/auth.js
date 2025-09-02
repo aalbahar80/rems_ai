@@ -105,12 +105,12 @@ const authorizeRoles = (...allowedRoles) => {
       });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.user_type)) {
       return res.status(403).json({
         success: false,
         error: 'Insufficient permissions',
         required_roles: allowedRoles,
-        user_role: req.user.role,
+        user_role: req.user.user_type,
       });
     }
 
@@ -128,10 +128,10 @@ const optionalAuth = async (req, res, next) => {
       const decoded = verifyToken(token);
       const userQuery = `
         SELECT 
-          id, username, email, role, full_name, phone, is_active,
-          created_at, updated_at
+          user_id, username, email, user_type, phone, is_active,
+          created_at, updated_at, preferred_language, timezone
         FROM rems.users 
-        WHERE id = $1 AND is_active = true
+        WHERE user_id = $1 AND is_active = true
       `;
 
       const result = await query(userQuery, [decoded.userId]);

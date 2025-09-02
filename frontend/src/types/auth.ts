@@ -1,25 +1,39 @@
 // Authentication types for multi-tenant REMS system
 
 export interface User {
-  id: number;
+  user_id: number;
   email: string;
   username: string;
   user_type: UserType;
+  related_entity_id?: number;
+  related_entity_type?: 'owner' | 'tenant' | 'vendor';
+  preferred_language: string;
+  timezone: string;
   is_active: boolean;
+  email_verified: boolean;
+  last_login?: string;
+  phone?: string;
 }
 
 export interface Firm {
   firm_id: number;
   firm_name: string;
-  legal_business_name?: string;
+  description?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserFirmAssignment {
   firm_id: number;
   firm_name: string;
-  role: FirmRole;
-  is_primary: boolean;
+  user_role: FirmRole;
+  access_level: 'standard' | 'elevated' | 'restricted';
+  assigned_at: string;
+  is_primary?: boolean; // Calculated field for frontend use
 }
 
 export interface AuthResponse {
@@ -41,13 +55,20 @@ export interface AuthState {
   isLoading: boolean;
 }
 
-export type UserType = 'admin' | 'owner' | 'tenant' | 'vendor';
+export type UserType =
+  | 'admin'
+  | 'accountant'
+  | 'owner'
+  | 'tenant'
+  | 'vendor'
+  | 'maintenance_staff';
 export type FirmRole =
   | 'admin'
   | 'accountant'
-  | 'manager'
-  | 'staff'
-  | 'readonly';
+  | 'owner'
+  | 'tenant'
+  | 'vendor'
+  | 'maintenance_staff';
 
 export type PortalType = 'admin' | 'accountant' | 'owner' | 'tenant';
 

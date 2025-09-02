@@ -33,67 +33,104 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true });
 
         try {
-          // For development - simulate login with mock data
-          // TODO: Replace with actual API call when backend is ready
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
+          // Call the real backend API
+          const response = await fetch(
+            'http://localhost:3001/api/v1/auth/login',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(credentials),
+            }
+          );
 
-          // Determine user type and firm based on email
-          let userType: 'admin' | 'owner' | 'tenant' | 'vendor' = 'admin';
-          let firmName = 'Demo Property Management';
-          let role: 'admin' | 'accountant' | 'manager' | 'staff' | 'readonly' =
-            'admin';
-
-          // Handle expected database credentials
-          if (credentials.email === 'admin@rems.local') {
-            userType = 'admin';
-            firmName = 'Kuwait Properties LLC';
-            role = 'admin';
-          } else if (credentials.email.includes('admin')) {
-            userType = 'admin';
-            role = 'admin';
-          } else if (credentials.email.includes('accountant')) {
-            userType = 'admin';
-            role = 'accountant';
-          } else if (credentials.email.includes('owner')) {
-            userType = 'owner';
-            role = 'admin';
-          } else if (credentials.email.includes('tenant')) {
-            userType = 'tenant';
-            role = 'readonly';
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Login failed:', errorData);
+            set({ isLoading: false });
+            return false;
           }
 
-          // Mock successful login response
-          const mockAuthResponse: AuthResponse = {
-            success: true,
-            data: {
-              token: 'mock-jwt-token-' + Date.now(),
-              user: {
-                id: 1,
-                email: credentials.email,
-                username: credentials.email.split('@')[0],
-                user_type: userType,
-                is_active: true,
+          const authResponse: AuthResponse = await response.json();
+
+          if (!authResponse.success) {
+            console.error('Login failed:', authResponse);
+            set({ isLoading: false });
+            return false;
+          }
+
+          // Get user's firm assignments if they exist
+          let userFirms: UserFirmAssignment[] = [];
+
+          // For admin users, they can see all firms or get assigned to specific ones
+          if (authResponse.data.user.user_type === 'admin') {
+            // For now, we'll create a default system admin assignment
+            userFirms = [
+              {
+                firm_id: 0, // System admin doesn't need a specific firm
+                firm_name: 'System Administration',
+                user_role: 'admin',
+                access_level: 'elevated',
+                assigned_at: new Date().toISOString(),
+                is_primary: true,
               },
-              firms: [
+            ];
+          } else {
+            // For non-admin users, get their actual firm assignments
+            try {
+              const firmsResponse = await fetch(
+                'http://localhost:3001/api/v1/users/' +
+                  authResponse.data.user.user_id,
                 {
-                  firm_id: 1,
-                  firm_name: firmName,
-                  role: role,
-                  is_primary: true,
-                },
-              ],
-              expires_in: '24h',
-            },
-          };
+                  headers: {
+                    Authorization: `Bearer ${authResponse.data.token}`,
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
+
+              if (firmsResponse.ok) {
+                const userData = await firmsResponse.json();
+                if (userData.success && userData.data.firm_assignments) {
+                  userFirms = userData.data.firm_assignments.map(
+                    (assignment: any, index: number) => ({
+                      firm_id: assignment.firm_id,
+                      firm_name: assignment.firm_name,
+                      user_role: assignment.user_role,
+                      access_level: assignment.access_level,
+                      assigned_at: assignment.assigned_at,
+                      is_primary: index === 0, // Mark first assignment as primary
+                    })
+                  );
+                }
+              }
+            } catch (error) {
+              console.error('Failed to fetch user firm assignments:', error);
+            }
+          }
+
+          // Set default firm assignment if none exist
+          if (userFirms.length === 0) {
+            userFirms = [
+              {
+                firm_id: 1,
+                firm_name: 'Default Firm',
+                user_role: authResponse.data.user.user_type as FirmRole,
+                access_level: 'standard',
+                assigned_at: new Date().toISOString(),
+                is_primary: true,
+              },
+            ];
+          }
 
           const primaryFirm =
-            mockAuthResponse.data.firms.find((f) => f.is_primary) ||
-            mockAuthResponse.data.firms[0];
+            userFirms.find((f) => f.is_primary) || userFirms[0];
 
           set({
-            user: mockAuthResponse.data.user,
-            token: mockAuthResponse.data.token,
-            firms: mockAuthResponse.data.firms,
+            user: authResponse.data.user,
+            token: authResponse.data.token,
+            firms: userFirms,
             currentFirm: primaryFirm,
             isAuthenticated: true,
             isLoading: false,
@@ -108,7 +145,9 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        // Clear auth state
+        const currentToken = get().token;
+
+        // Clear auth state immediately
         set({
           user: null,
           token: null,
@@ -119,12 +158,15 @@ export const useAuthStore = create<AuthStore>()(
         });
 
         // Call logout API to invalidate token server-side
-        fetch('/api/v1/auth/logout', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${get().token}`,
-          },
-        }).catch(console.error);
+        if (currentToken) {
+          fetch('http://localhost:3001/api/v1/auth/logout', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${currentToken}`,
+              'Content-Type': 'application/json',
+            },
+          }).catch(console.error);
+        }
       },
 
       switchFirm: (firmId: number) => {
@@ -219,7 +261,7 @@ export const usePermissions = () => {
     if (!currentFirm || !user) return false;
 
     // Admin users have all permissions
-    if (currentFirm.role === 'admin') return true;
+    if (currentFirm.user_role === 'admin') return true;
 
     // Role-based permission logic
     const rolePermissions: Record<string, string[]> = {
@@ -228,13 +270,32 @@ export const usePermissions = () => {
         'tenants:read',
         'invoices:write',
         'expenses:read',
+        'financial:write',
+        'settings:read',
       ],
-      manager: ['properties:read', 'tenants:write', 'maintenance:write'],
-      staff: ['properties:read', 'tenants:read'],
-      readonly: ['properties:read'],
+      owner: [
+        'properties:read',
+        'tenants:read',
+        'invoices:read',
+        'expenses:read',
+        'maintenance:read',
+        'financial:read',
+      ],
+      tenant: [
+        'properties:read',
+        'contracts:read',
+        'invoices:read',
+        'maintenance:write',
+      ],
+      vendor: ['maintenance:read', 'maintenance:write', 'invoices:write'],
+      maintenance_staff: [
+        'properties:read',
+        'maintenance:write',
+        'vendors:read',
+      ],
     };
 
-    const userPermissions = rolePermissions[currentFirm.role] || [];
+    const userPermissions = rolePermissions[currentFirm.user_role] || [];
     return userPermissions.includes(`${resource}:${action}`);
   };
 
@@ -244,26 +305,29 @@ export const usePermissions = () => {
     const portalAccess: Record<string, string[]> = {
       admin: ['admin', 'accountant', 'owner'],
       accountant: ['accountant'],
-      manager: ['accountant'],
-      staff: ['accountant'],
-      readonly: ['accountant'],
+      owner: ['owner', 'accountant'],
+      tenant: ['tenant'],
+      vendor: ['accountant'], // Vendors access accountant portal for invoicing
+      maintenance_staff: ['accountant'], // Staff access accountant portal for work orders
     };
 
-    // Add user-type specific portals
-    const basePortals = portalAccess[currentFirm.role] || [];
+    // Get base portals for user role
+    const basePortals = portalAccess[currentFirm.user_role] || [];
 
+    // User type determines additional portal access
+    const additionalPortals: string[] = [];
     if (user.user_type === 'owner') {
-      basePortals.push('owner');
+      additionalPortals.push('owner');
     } else if (user.user_type === 'tenant') {
-      basePortals.push('tenant');
+      additionalPortals.push('tenant');
     }
 
-    return [...new Set(basePortals)];
+    return [...new Set([...basePortals, ...additionalPortals])];
   };
 
   return {
     hasPermission,
     getPortalAccess,
-    currentRole: currentFirm?.role,
+    currentRole: currentFirm?.user_role,
   };
 };
