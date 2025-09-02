@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiClient, handleApiError } from '@/lib/api-client';
 import {
   ArrowLeft,
   ArrowRight,
@@ -98,15 +99,44 @@ export default function FirmCreationPage() {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Combine address fields
+      const fullAddress = [
+        formData.address.street,
+        formData.address.city,
+        formData.address.state,
+        formData.address.postalCode,
+        formData.address.country,
+      ]
+        .filter(Boolean)
+        .join(', ');
 
-      console.log('Firm profile:', formData);
-      console.log('Logo file:', logoFile);
+      // Create payload matching backend expectations
+      const payload = {
+        firm_name: formData.companyName.trim(),
+        description: '', // Business description (optional for onboarding)
+        contact_email: formData.contact.email.trim(),
+        contact_phone: formData.contact.phone.trim(),
+        address: fullAddress,
+        settings: {
+          legal_business_name: formData.companyName.trim(),
+          registration_number: formData.businessRegistration.trim(),
+          tax_number: formData.taxId.trim() || '',
+          website_url: formData.contact.website.trim() || '',
+          industry_type: 'real_estate',
+          number_of_employees: '0',
+        },
+      };
 
-      router.push('/admin/onboarding/expenses');
+      const response = await apiClient.post('/firms', payload);
+
+      if (response.success) {
+        console.log('Firm created successfully:', response.data);
+        router.push('/admin/onboarding/expenses');
+      }
     } catch (error) {
       console.error('Failed to save firm profile:', error);
-      alert('Failed to save firm profile. Please try again.');
+      const errorMessage = handleApiError(error);
+      alert(`Failed to save firm profile: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }

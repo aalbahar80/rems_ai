@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, Mail, Phone, MapPin, FileText } from 'lucide-react';
+import {
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Upload,
+  Globe,
+  Hash,
+  Users,
+} from 'lucide-react';
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,15 +26,34 @@ interface CreateFirmModalProps {
 
 interface FormData {
   firm_name: string;
-  description: string;
-  contact_email: string;
-  contact_phone: string;
-  address: string;
+  legal_business_name: string;
+  registration_number: string;
+  tax_number: string;
+  primary_phone: string;
+  secondary_phone: string;
+  email: string;
+  website_url: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+  };
+  business_description: string;
+  industry_type: string;
+  number_of_employees: string;
+  logo?: File;
 }
 
 interface FormErrors {
   firm_name?: string;
-  contact_email?: string;
+  email?: string;
+  registration_number?: string;
+  primary_phone?: string;
+  address_street?: string;
+  address_city?: string;
+  address_state?: string;
   general?: string;
 }
 
@@ -58,18 +87,57 @@ export function CreateFirmModal({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firm_name: '',
-    description: '',
-    contact_email: '',
-    contact_phone: '',
-    address: '',
+    legal_business_name: '',
+    registration_number: '',
+    tax_number: '',
+    primary_phone: '',
+    secondary_phone: '',
+    email: '',
+    website_url: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      country: 'Kuwait',
+    },
+    business_description: '',
+    industry_type: 'real_estate',
+    number_of_employees: '',
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: string) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setFormData((prev) => ({
+        ...prev,
+        [parent]: {
+          ...(prev[parent as keyof FormData] as any),
+          [child]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
     // Clear error when user starts typing
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    const errorField = field.replace('.', '_') as keyof FormErrors;
+    if (errors[errorField]) {
+      setErrors((prev) => ({ ...prev, [errorField]: undefined }));
+    }
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -82,10 +150,31 @@ export function CreateFirmModal({
       newErrors.firm_name = 'Firm name must be at least 2 characters';
     }
 
-    if (!formData.contact_email.trim()) {
-      newErrors.contact_email = 'Contact email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
-      newErrors.contact_email = 'Please enter a valid email address';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Contact email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.registration_number.trim()) {
+      newErrors.registration_number =
+        'Business registration number is required';
+    }
+
+    if (!formData.primary_phone.trim()) {
+      newErrors.primary_phone = 'Primary phone number is required';
+    }
+
+    if (!formData.address.street.trim()) {
+      newErrors.address_street = 'Street address is required';
+    }
+
+    if (!formData.address.city.trim()) {
+      newErrors.address_city = 'City is required';
+    }
+
+    if (!formData.address.state.trim()) {
+      newErrors.address_state = 'State/Governorate is required';
     }
 
     setErrors(newErrors);
@@ -101,23 +190,62 @@ export function CreateFirmModal({
 
     setLoading(true);
     try {
-      const response = await apiClient.post('/firms', {
+      // Combine address fields
+      const fullAddress = [
+        formData.address.street,
+        formData.address.city,
+        formData.address.state,
+        formData.address.postal_code,
+        formData.address.country,
+      ]
+        .filter(Boolean)
+        .join(', ');
+
+      // Create payload matching backend expectations
+      const payload = {
         firm_name: formData.firm_name.trim(),
-        description: formData.description.trim() || undefined,
-        contact_email: formData.contact_email.trim(),
-        contact_phone: formData.contact_phone.trim() || undefined,
-        address: formData.address.trim() || undefined,
-      });
+        description: formData.business_description.trim() || '',
+        contact_email: formData.email.trim(),
+        contact_phone: formData.primary_phone.trim(),
+        address: fullAddress,
+        settings: {
+          legal_business_name:
+            formData.legal_business_name.trim() || formData.firm_name.trim(),
+          registration_number: formData.registration_number.trim(),
+          tax_number: formData.tax_number.trim() || '',
+          secondary_phone: formData.secondary_phone.trim() || '',
+          website_url: formData.website_url.trim() || '',
+          industry_type: formData.industry_type,
+          number_of_employees: formData.number_of_employees || '0',
+        },
+      };
+
+      const response = await apiClient.post('/firms', payload);
 
       if (response.success) {
         // Reset form
         setFormData({
           firm_name: '',
-          description: '',
-          contact_email: '',
-          contact_phone: '',
-          address: '',
+          legal_business_name: '',
+          registration_number: '',
+          tax_number: '',
+          primary_phone: '',
+          secondary_phone: '',
+          email: '',
+          website_url: '',
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            postal_code: '',
+            country: 'Kuwait',
+          },
+          business_description: '',
+          industry_type: 'real_estate',
+          number_of_employees: '',
         });
+        setLogoFile(null);
+        setLogoPreview(null);
         setErrors({});
         onSuccess();
         onClose();
@@ -134,11 +262,26 @@ export function CreateFirmModal({
     if (!loading) {
       setFormData({
         firm_name: '',
-        description: '',
-        contact_email: '',
-        contact_phone: '',
-        address: '',
+        legal_business_name: '',
+        registration_number: '',
+        tax_number: '',
+        primary_phone: '',
+        secondary_phone: '',
+        email: '',
+        website_url: '',
+        address: {
+          street: '',
+          city: '',
+          state: '',
+          postal_code: '',
+          country: 'Kuwait',
+        },
+        business_description: '',
+        industry_type: 'real_estate',
+        number_of_employees: '',
       });
+      setLogoFile(null);
+      setLogoPreview(null);
       setErrors({});
       onClose();
     }
@@ -149,7 +292,7 @@ export function CreateFirmModal({
       isOpen={isOpen}
       onClose={handleClose}
       title="Create New Firm"
-      size="lg"
+      size="xl"
     >
       <form onSubmit={handleSubmit}>
         <ModalBody>
@@ -159,114 +302,216 @@ export function CreateFirmModal({
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Firm Name */}
-            <div className="md:col-span-2">
-              <FormField label="Firm Name" required error={errors.firm_name}>
+          <div className="space-y-6">
+            {/* Essential Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <FormField
+                  label="Company Name"
+                  required
+                  error={errors.firm_name}
+                >
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      value={formData.firm_name}
+                      onChange={(e) =>
+                        handleInputChange('firm_name', e.target.value)
+                      }
+                      placeholder="Enter company name"
+                      className={cn(
+                        'pl-9',
+                        errors.firm_name && 'border-red-300'
+                      )}
+                      disabled={loading}
+                    />
+                  </div>
+                </FormField>
+              </div>
+
+              <FormField
+                label="Registration Number"
+                required
+                error={errors.registration_number}
+              >
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    value={formData.firm_name}
+                    value={formData.registration_number}
                     onChange={(e) =>
-                      handleInputChange('firm_name', e.target.value)
+                      handleInputChange('registration_number', e.target.value)
                     }
-                    placeholder="Enter firm name"
-                    className={cn('pl-9', errors.firm_name && 'border-red-300')}
+                    placeholder="e.g. 123456"
+                    className={cn(
+                      'pl-9',
+                      errors.registration_number && 'border-red-300'
+                    )}
+                    disabled={loading}
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Industry Type">
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <select
+                    value={formData.industry_type}
+                    onChange={(e) =>
+                      handleInputChange('industry_type', e.target.value)
+                    }
+                    className={cn(
+                      'w-full pl-9 pr-3 py-2 border border-input bg-background text-sm',
+                      'placeholder:text-muted-foreground focus:outline-none focus:ring-2',
+                      'focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed',
+                      'disabled:opacity-50 rounded-md'
+                    )}
+                    disabled={loading}
+                  >
+                    <option value="real_estate">Real Estate</option>
+                    <option value="property_management">
+                      Property Management
+                    </option>
+                    <option value="investment">Investment</option>
+                    <option value="construction">Construction</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </FormField>
+            </div>
+
+            {/* Contact Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="Primary Phone"
+                required
+                error={errors.primary_phone}
+              >
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="tel"
+                    value={formData.primary_phone}
+                    onChange={(e) =>
+                      handleInputChange('primary_phone', e.target.value)
+                    }
+                    placeholder="+965 XXXX XXXX"
+                    className={cn(
+                      'pl-9',
+                      errors.primary_phone && 'border-red-300'
+                    )}
+                    disabled={loading}
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Email Address" required error={errors.email}>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="contact@yourcompany.com"
+                    className={cn('pl-9', errors.email && 'border-red-300')}
                     disabled={loading}
                   />
                 </div>
               </FormField>
             </div>
 
-            {/* Contact Email */}
-            <FormField
-              label="Contact Email"
-              required
-              error={errors.contact_email}
-            >
+            {/* Address Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-medium">Business Address</h3>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 pl-6">
+                <FormField
+                  label="Street Address"
+                  required
+                  error={errors.address_street}
+                >
+                  <Input
+                    type="text"
+                    placeholder="Building number, street name"
+                    value={formData.address.street}
+                    onChange={(e) =>
+                      handleInputChange('address.street', e.target.value)
+                    }
+                    className={cn(errors.address_street && 'border-red-300')}
+                    disabled={loading}
+                  />
+                </FormField>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField label="City" required error={errors.address_city}>
+                    <Input
+                      type="text"
+                      placeholder="e.g. Kuwait City"
+                      value={formData.address.city}
+                      onChange={(e) =>
+                        handleInputChange('address.city', e.target.value)
+                      }
+                      className={cn(errors.address_city && 'border-red-300')}
+                      disabled={loading}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="State/Governorate"
+                    required
+                    error={errors.address_state}
+                  >
+                    <Input
+                      type="text"
+                      placeholder="e.g. Al Asimah"
+                      value={formData.address.state}
+                      onChange={(e) =>
+                        handleInputChange('address.state', e.target.value)
+                      }
+                      className={cn(errors.address_state && 'border-red-300')}
+                      disabled={loading}
+                    />
+                  </FormField>
+
+                  <FormField label="Country">
+                    <Input
+                      type="text"
+                      value={formData.address.country}
+                      onChange={(e) =>
+                        handleInputChange('address.country', e.target.value)
+                      }
+                      disabled={loading}
+                    />
+                  </FormField>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <FormField label="Business Description (Optional)">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="email"
-                  value={formData.contact_email}
+                <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <textarea
+                  value={formData.business_description}
                   onChange={(e) =>
-                    handleInputChange('contact_email', e.target.value)
+                    handleInputChange('business_description', e.target.value)
                   }
-                  placeholder="contact@firm.com"
+                  placeholder="Brief description of the firm"
+                  rows={2}
                   className={cn(
-                    'pl-9',
-                    errors.contact_email && 'border-red-300'
+                    'w-full pl-9 pr-3 py-2 border border-input bg-background text-sm',
+                    'placeholder:text-muted-foreground focus:outline-none focus:ring-2',
+                    'focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed',
+                    'disabled:opacity-50 rounded-md resize-none'
                   )}
                   disabled={loading}
                 />
               </div>
             </FormField>
-
-            {/* Contact Phone */}
-            <FormField label="Contact Phone">
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="tel"
-                  value={formData.contact_phone}
-                  onChange={(e) =>
-                    handleInputChange('contact_phone', e.target.value)
-                  }
-                  placeholder="+965 XXXX XXXX"
-                  className="pl-9"
-                  disabled={loading}
-                />
-              </div>
-            </FormField>
-
-            {/* Address */}
-            <div className="md:col-span-2">
-              <FormField label="Address">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <textarea
-                    value={formData.address}
-                    onChange={(e) =>
-                      handleInputChange('address', e.target.value)
-                    }
-                    placeholder="Enter firm address"
-                    rows={3}
-                    className={cn(
-                      'w-full pl-9 pr-3 py-2 border border-input bg-background text-sm',
-                      'placeholder:text-muted-foreground focus:outline-none focus:ring-2',
-                      'focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed',
-                      'disabled:opacity-50 rounded-md resize-none'
-                    )}
-                    disabled={loading}
-                  />
-                </div>
-              </FormField>
-            </div>
-
-            {/* Description */}
-            <div className="md:col-span-2">
-              <FormField label="Description">
-                <div className="relative">
-                  <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange('description', e.target.value)
-                    }
-                    placeholder="Brief description of the firm (optional)"
-                    rows={3}
-                    className={cn(
-                      'w-full pl-9 pr-3 py-2 border border-input bg-background text-sm',
-                      'placeholder:text-muted-foreground focus:outline-none focus:ring-2',
-                      'focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed',
-                      'disabled:opacity-50 rounded-md resize-none'
-                    )}
-                    disabled={loading}
-                  />
-                </div>
-              </FormField>
-            </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
@@ -274,13 +519,13 @@ export function CreateFirmModal({
               <Building2 className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
                 <h4 className="text-sm font-medium text-blue-800">
-                  Multi-Tenant Architecture
+                  Quick Firm Creation
                 </h4>
                 <p className="text-xs text-blue-700 mt-1">
-                  This firm will have complete data isolation. Users can be
-                  assigned to this firm with specific roles and permissions. All
-                  property, tenant, and financial data will be segmented by
-                  firm.
+                  Create your firm with essential details. Additional
+                  information like logo, legal business name, tax ID, website,
+                  and secondary contacts can be added later via the edit
+                  function.
                 </p>
               </div>
             </div>

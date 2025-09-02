@@ -115,7 +115,7 @@ const getFirmById = async (req, res) => {
     const assignmentsQuery = `
       SELECT 
         fa.assignment_id,
-        fa.user_role,
+        fa.role_in_firm,
         fa.access_level,
         fa.assigned_at,
         u.username,
@@ -226,8 +226,8 @@ const updateFirm = async (req, res) => {
       contact_email,
       contact_phone,
       address,
-      settings,
       is_active,
+      settings = {},
     } = req.body;
 
     // Check if firm exists
@@ -253,25 +253,56 @@ const updateFirm = async (req, res) => {
       values.push(firm_name);
     }
     if (description !== undefined) {
-      updates.push(`description = $${paramIndex++}`);
+      updates.push(`business_description = $${paramIndex++}`);
       values.push(description);
     }
     if (contact_email !== undefined) {
-      updates.push(`contact_email = $${paramIndex++}`);
+      updates.push(`email = $${paramIndex++}`);
       values.push(contact_email);
     }
     if (contact_phone !== undefined) {
-      updates.push(`contact_phone = $${paramIndex++}`);
+      updates.push(`primary_phone = $${paramIndex++}`);
       values.push(contact_phone);
     }
     if (address !== undefined) {
-      updates.push(`address = $${paramIndex++}`);
+      updates.push(`business_address = $${paramIndex++}`);
       values.push(address);
     }
-    if (settings !== undefined) {
-      updates.push(`settings = $${paramIndex++}`);
-      values.push(JSON.stringify(settings));
+
+    // Handle fields from settings object
+    if (settings.legal_business_name !== undefined) {
+      updates.push(`legal_business_name = $${paramIndex++}`);
+      values.push(settings.legal_business_name);
     }
+    if (settings.registration_number !== undefined) {
+      updates.push(`registration_number = $${paramIndex++}`);
+      values.push(settings.registration_number);
+    }
+    if (settings.tax_number !== undefined) {
+      updates.push(`tax_number = $${paramIndex++}`);
+      values.push(settings.tax_number);
+    }
+    if (settings.secondary_phone !== undefined) {
+      updates.push(`secondary_phone = $${paramIndex++}`);
+      values.push(settings.secondary_phone);
+    }
+    if (settings.website_url !== undefined) {
+      updates.push(`website_url = $${paramIndex++}`);
+      values.push(settings.website_url);
+    }
+    if (settings.industry_type !== undefined) {
+      updates.push(`industry_type = $${paramIndex++}`);
+      values.push(settings.industry_type);
+    }
+    if (settings.number_of_employees !== undefined) {
+      updates.push(`number_of_employees = $${paramIndex++}`);
+      values.push(parseInt(settings.number_of_employees) || null);
+    }
+    if (settings.logo_url !== undefined) {
+      updates.push(`logo_url = $${paramIndex++}`);
+      values.push(settings.logo_url);
+    }
+
     if (is_active !== undefined) {
       updates.push(`is_active = $${paramIndex++}`);
       values.push(is_active);

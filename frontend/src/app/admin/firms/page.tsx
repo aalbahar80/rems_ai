@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Building2,
   Plus,
@@ -24,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CreateFirmModal } from '@/components/admin/CreateFirmModal';
+import { ViewFirmModal } from '@/components/admin/ViewFirmModal';
 import { apiClient, handleApiError } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +53,7 @@ interface FirmStatistics {
 }
 
 export default function FirmsManagement() {
+  const router = useRouter();
   const [firms, setFirms] = useState<Firm[]>([]);
   const [statistics, setStatistics] = useState<FirmStatistics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +64,8 @@ export default function FirmsManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedFirm, setSelectedFirm] = useState<Firm | null>(null);
 
   useEffect(() => {
     loadFirms();
@@ -133,6 +138,20 @@ export default function FirmsManagement() {
     loadStatistics();
   };
 
+  const handleViewFirm = (firm: Firm) => {
+    setSelectedFirm(firm);
+    setShowViewModal(true);
+  };
+
+  const handleEditFirm = (firmId: number) => {
+    setShowViewModal(false);
+    router.push(`/admin/firms/${firmId}/edit`);
+  };
+
+  const handleEditFirmDirect = (firmId: number) => {
+    router.push(`/admin/firms/${firmId}/edit`);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -178,7 +197,15 @@ export default function FirmsManagement() {
     );
   };
 
-  const FirmRow = ({ firm }: { firm: Firm }) => {
+  const FirmRow = ({
+    firm,
+    onViewFirm,
+    onEditFirm,
+  }: {
+    firm: Firm;
+    onViewFirm: (firm: Firm) => void;
+    onEditFirm: (firmId: number) => void;
+  }) => {
     const [actionMenuOpen, setActionMenuOpen] = useState(false);
 
     return (
@@ -191,9 +218,12 @@ export default function FirmsManagement() {
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground truncate">
+              <button
+                onClick={() => onViewFirm(firm)}
+                className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors text-left"
+              >
                 {firm.firm_name}
-              </p>
+              </button>
               {firm.description && (
                 <p className="text-xs text-muted-foreground truncate">
                   {firm.description}
@@ -280,11 +310,23 @@ export default function FirmsManagement() {
                 />
                 <div className="absolute right-0 top-full mt-1 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-md shadow-lg z-20">
                   <div className="py-1">
-                    <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted">
+                    <button
+                      onClick={() => {
+                        onViewFirm(firm);
+                        setActionMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted"
+                    >
                       <Eye className="h-4 w-4" />
                       <span>View Details</span>
                     </button>
-                    <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted">
+                    <button
+                      onClick={() => {
+                        onEditFirm(firm.firm_id);
+                        setActionMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted"
+                    >
                       <Edit3 className="h-4 w-4" />
                       <span>Edit Firm</span>
                     </button>
@@ -471,7 +513,12 @@ export default function FirmsManagement() {
                   </thead>
                   <tbody className="bg-background">
                     {firms.map((firm) => (
-                      <FirmRow key={firm.firm_id} firm={firm} />
+                      <FirmRow
+                        key={firm.firm_id}
+                        firm={firm}
+                        onViewFirm={handleViewFirm}
+                        onEditFirm={handleEditFirmDirect}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -514,6 +561,14 @@ export default function FirmsManagement() {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleCreateSuccess}
+        />
+
+        {/* View Firm Modal */}
+        <ViewFirmModal
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          onEdit={handleEditFirm}
+          firm={selectedFirm}
         />
       </div>
     </AdminLayout>
