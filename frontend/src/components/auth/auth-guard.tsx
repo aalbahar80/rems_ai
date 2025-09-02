@@ -23,10 +23,21 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, token } = useAuth();
+  const { isAuthenticated, isLoading, token, user, currentFirm, hasHydrated } =
+    useAuth();
   const { hasPermission, getPortalAccess } = usePermissions();
 
   useEffect(() => {
+    console.log('🛡️  AuthGuard useEffect:', {
+      pathname,
+      isAuthenticated,
+      isLoading,
+      hasHydrated,
+      hasToken: !!token,
+      hasUser: !!user,
+      hasFirm: !!currentFirm,
+    });
+
     // Skip auth check for public routes
     const publicRoutes = [
       '/login',
@@ -41,19 +52,40 @@ export function AuthGuard({
       '/support',
     ];
     if (publicRoutes.includes(pathname)) {
+      console.log('📄 Public route, skipping auth check');
       return;
     }
 
-    // Redirect to login if not authenticated
+    // Wait for store to be hydrated before making auth decisions
+    if (!hasHydrated) {
+      console.log('⏳ Waiting for store hydration...');
+      return;
+    }
+
+    // Wait for auth state to be fully loaded from storage
     if (!isLoading && !isAuthenticated) {
+      console.log('🚪 Not authenticated, redirecting to login');
       router.push(`${fallbackPath}?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    // Additional check: if authenticated but missing critical data, wait a bit more
+    if (isAuthenticated && (!user || !currentFirm)) {
+      console.log('⏳ Authenticated but missing user/firm data, waiting...');
       return;
     }
 
     // Check portal access
     if (isAuthenticated && requiredPortal) {
       const accessiblePortals = getPortalAccess();
+      console.log('🔐 AuthGuard portal check:', {
+        requiredPortal,
+        accessiblePortals,
+        hasAccess: accessiblePortals.includes(requiredPortal),
+        pathname,
+      });
       if (!accessiblePortals.includes(requiredPortal)) {
+        console.log('❌ Access denied, redirecting to /unauthorized');
         router.push('/unauthorized');
         return;
       }
@@ -71,6 +103,7 @@ export function AuthGuard({
   }, [
     isAuthenticated,
     isLoading,
+    hasHydrated,
     pathname,
     requiredPortal,
     requiredPermission,
@@ -80,8 +113,8 @@ export function AuthGuard({
     getPortalAccess,
   ]);
 
-  // Show loading state
-  if (isLoading) {
+  // Show loading state while hydrating or loading
+  if (isLoading || !hasHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -105,9 +138,21 @@ export function AuthGuard({
 
   // Don't render children until authentication is verified
   if (!isAuthenticated && !publicRoutes.includes(pathname)) {
+    console.log('🚫 Not rendering: not authenticated and not public route');
     return null;
   }
 
+  // For authenticated protected routes, wait for critical auth data
+  if (
+    isAuthenticated &&
+    !publicRoutes.includes(pathname) &&
+    (!user || !currentFirm)
+  ) {
+    console.log('⏳ Not rendering: authenticated but missing critical data');
+    return null;
+  }
+
+  console.log('✅ AuthGuard: Rendering children');
   return <>{children}</>;
 }
 

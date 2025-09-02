@@ -74,7 +74,7 @@ export function Header({ className }: HeaderProps) {
               </Button>
 
               {showFirmSelector && (
-                <div className="absolute right-0 mt-2 w-64 bg-background border rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-md shadow-lg z-50">
                   <div className="py-1">
                     <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
                       Switch Organization
@@ -119,7 +119,7 @@ export function Header({ className }: HeaderProps) {
             </Button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-background border rounded-md shadow-lg z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-md shadow-lg z-50">
                 <div className="py-1">
                   <div className="px-3 py-2 text-sm border-b">
                     <div className="font-medium">{user.username}</div>
@@ -177,7 +177,7 @@ export function Header({ className }: HeaderProps) {
 
       {/* Mobile Menu */}
       {showMobileMenu && (
-        <div className="md:hidden border-t bg-background">
+        <div className="md:hidden border-t bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
           <div className="px-4 py-2 space-y-2">
             {/* User Info */}
             <div className="flex items-center space-x-3 py-2">

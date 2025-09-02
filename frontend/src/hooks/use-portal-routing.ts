@@ -10,7 +10,15 @@ export function usePortalRouting() {
   const { getPortalAccess } = usePermissions();
 
   const getDefaultPortalForUser = (): PortalType | null => {
-    if (!user || !currentFirm) return null;
+    console.log('🏠 getDefaultPortalForUser called:', {
+      user: user?.username,
+      currentFirm: currentFirm?.firm_name,
+    });
+
+    if (!user || !currentFirm) {
+      console.log('🚫 getDefaultPortalForUser: Missing data, returning null');
+      return null;
+    }
 
     const accessiblePortals = getPortalAccess();
 
@@ -27,9 +35,9 @@ export function usePortalRouting() {
     }
 
     // Role based priorities
-    if (currentFirm.role === 'admin') {
+    if (currentFirm.user_role === 'admin') {
       priorityOrder.push('admin', 'accountant');
-    } else if (currentFirm.role === 'accountant') {
+    } else if (currentFirm.user_role === 'accountant') {
       priorityOrder.push('accountant');
     }
 
@@ -45,10 +53,15 @@ export function usePortalRouting() {
   };
 
   const navigateToDefaultPortal = () => {
+    console.log('🧭 navigateToDefaultPortal called');
     const defaultPortal = getDefaultPortalForUser();
+    console.log('🧭 Default portal determined:', defaultPortal);
+
     if (defaultPortal) {
+      console.log(`✅ Navigating to /${defaultPortal}`);
       router.push(`/${defaultPortal}`);
     } else {
+      console.log('❌ No default portal found, redirecting to /unauthorized');
       router.push('/unauthorized');
     }
   };

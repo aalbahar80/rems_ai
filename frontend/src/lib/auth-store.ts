@@ -6,9 +6,14 @@ import type {
   UserFirmAssignment,
   LoginCredentials,
   AuthResponse,
+  FirmRole,
 } from '@/types/auth';
 
 interface AuthStore extends AuthState {
+  // Hydration state
+  hasHydrated: boolean;
+  setHasHydrated: (hasHydrated: boolean) => void;
+
   // Actions
   login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => void;
@@ -27,9 +32,19 @@ export const useAuthStore = create<AuthStore>()(
       currentFirm: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
+
+      // Hydration action
+      setHasHydrated: (hasHydrated: boolean) => {
+        console.log('💧 Store hydration state changed:', hasHydrated);
+        set({ hasHydrated });
+      },
 
       // Actions
       login: async (credentials: LoginCredentials) => {
+        console.log('🔐 Starting login process...', {
+          credential: credentials.credential,
+        });
         set({ isLoading: true });
 
         try {
@@ -106,7 +121,11 @@ export const useAuthStore = create<AuthStore>()(
                 }
               }
             } catch (error) {
-              console.error('Failed to fetch user firm assignments:', error);
+              console.error(
+                '⚠️  Failed to fetch user firm assignments (non-admin):',
+                error
+              );
+              // This is non-critical for login, continue with default assignment
             }
           }
 
@@ -127,6 +146,13 @@ export const useAuthStore = create<AuthStore>()(
           const primaryFirm =
             userFirms.find((f) => f.is_primary) || userFirms[0];
 
+          console.log('✅ Login successful, setting auth state:', {
+            user: authResponse.data.user.username,
+            userType: authResponse.data.user.user_type,
+            firms: userFirms,
+            primaryFirm: primaryFirm,
+          });
+
           set({
             user: authResponse.data.user,
             token: authResponse.data.token,
@@ -136,9 +162,12 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
           });
 
+          console.log(
+            '🎉 Login process completed successfully, returning true'
+          );
           return true;
         } catch (error) {
-          console.error('Login error:', error);
+          console.error('❌ Login error caught:', error);
           set({ isLoading: false });
           return false;
         }
@@ -228,6 +257,21 @@ export const useAuthStore = create<AuthStore>()(
         currentFirm: state.currentFirm,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => {
+        console.log('💧 Starting store rehydration...');
+        return (state, error) => {
+          if (error) {
+            console.error('💧 Store rehydration failed:', error);
+          } else {
+            console.log('💧 Store rehydration completed:', {
+              isAuthenticated: state?.isAuthenticated,
+              hasUser: !!state?.user,
+              hasFirm: !!state?.currentFirm,
+            });
+            state?.setHasHydrated(true);
+          }
+        };
+      },
     }
   )
 );
@@ -242,6 +286,7 @@ export const useAuth = () => {
     currentFirm: store.currentFirm,
     isAuthenticated: store.isAuthenticated,
     isLoading: store.isLoading,
+    hasHydrated: store.hasHydrated,
     login: store.login,
     logout: store.logout,
     switchFirm: store.switchFirm,
@@ -300,7 +345,13 @@ export const usePermissions = () => {
   };
 
   const getPortalAccess = (): string[] => {
-    if (!currentFirm || !user) return [];
+    if (!currentFirm || !user) {
+      console.log('🚫 getPortalAccess: Missing data', {
+        currentFirm,
+        user: user?.username,
+      });
+      return [];
+    }
 
     const portalAccess: Record<string, string[]> = {
       admin: ['admin', 'accountant', 'owner'],
@@ -322,7 +373,17 @@ export const usePermissions = () => {
       additionalPortals.push('tenant');
     }
 
-    return [...new Set([...basePortals, ...additionalPortals])];
+    const result = [...new Set([...basePortals, ...additionalPortals])];
+    console.log('✅ getPortalAccess result:', {
+      user: user.username,
+      userType: user.user_type,
+      firmRole: currentFirm.user_role,
+      basePortals,
+      additionalPortals,
+      result,
+    });
+
+    return result;
   };
 
   return {

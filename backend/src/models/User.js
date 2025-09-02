@@ -307,13 +307,18 @@ class User {
   // Convert to safe object (without sensitive data)
   toSafeObject() {
     return {
+      user_id: this.id,
       id: this.id,
       username: this.username,
       email: this.email,
-      role: this.role,
+      user_type: this.role,
+      role: this.role, // Keep for backward compatibility
       full_name: this.full_name,
       phone: this.phone,
       is_active: this.is_active,
+      email_verified: true, // Default for now
+      preferred_language: this.preferred_language || 'en',
+      timezone: this.timezone || 'Asia/Kuwait',
       created_at: this.created_at,
       updated_at: this.updated_at,
     };

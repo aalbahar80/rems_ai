@@ -20,7 +20,7 @@ const getAllFirms = async (req, res) => {
 
     // Search filter
     if (search) {
-      whereClause += ` AND (firm_name ILIKE $${paramIndex} OR contact_email ILIKE $${paramIndex})`;
+      whereClause += ` AND (firm_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`;
       queryParams.push(`%${search}%`);
       paramIndex++;
     }
@@ -46,10 +46,10 @@ const getAllFirms = async (req, res) => {
       SELECT 
         firm_id,
         firm_name,
-        description,
-        contact_email,
-        contact_phone,
-        address,
+        business_description as description,
+        email as contact_email,
+        primary_phone as contact_phone,
+        business_address as address,
         is_active,
         created_at,
         updated_at,
@@ -171,24 +171,24 @@ const createFirm = async (req, res) => {
 
     // Check if firm name already exists
     const existingFirm = await query(
-      'SELECT firm_id FROM rems.firms WHERE firm_name = $1',
-      [firm_name]
+      'SELECT firm_id FROM rems.firms WHERE firm_name = $1 OR email = $2',
+      [firm_name, contact_email]
     );
 
     if (existingFirm.rows.length > 0) {
       return res.status(409).json({
         success: false,
-        error: 'Firm name already exists',
+        error: 'Firm name or email already exists',
       });
     }
 
     // Create firm
     const createQuery = `
       INSERT INTO rems.firms (
-        firm_name, description, contact_email, contact_phone, 
-        address, settings, created_by
+        firm_name, business_description, email, primary_phone, 
+        business_address, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
 
@@ -198,7 +198,6 @@ const createFirm = async (req, res) => {
       contact_email,
       contact_phone,
       address,
-      JSON.stringify(settings),
       req.user.user_id,
     ]);
 

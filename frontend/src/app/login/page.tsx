@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Building2, Eye, EyeOff } from 'lucide-react';
@@ -17,32 +17,50 @@ export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const { navigateToDefaultPortal } = usePortalRouting();
 
+  const [redirectTo, setRedirectTo] = useState('/admin');
+
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
+    credential: '',
     password: '',
   });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Get redirect parameter from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    if (redirect) {
+      setRedirectTo(redirect);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!credentials.email || !credentials.password) {
+    if (!credentials.credential || !credentials.password) {
       setError('Please fill in all fields');
       return;
     }
 
     try {
+      console.log('📝 Login page: Calling login function...');
       const success = await login(credentials);
+      console.log('📝 Login page: Login function returned:', success);
 
       if (success) {
-        // Redirect to appropriate portal based on user permissions
-        navigateToDefaultPortal();
+        console.log('✅ Login page: Success! Redirecting...');
+        // Directly navigate to admin portal for admin users
+        // This avoids the race condition with hook state updates
+        console.log('🧭 Login page: Redirecting to:', redirectTo);
+        router.push(redirectTo);
       } else {
-        setError('Invalid email or password');
+        console.log('❌ Login page: Login returned false');
+        setError('Invalid credential or password');
       }
     } catch (err) {
+      console.error('💥 Login page: Exception caught:', err);
       setError('Login failed. Please try again.');
     }
   };
@@ -86,13 +104,17 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Email Field */}
-              <FormField label="Email" required className="text-gray-900">
+              {/* Email/Username Field */}
+              <FormField
+                label="Email or Username"
+                required
+                className="text-gray-900"
+              >
                 <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={credentials.email}
-                  onChange={handleInputChange('email')}
+                  type="text"
+                  placeholder="Enter your email or username"
+                  value={credentials.credential}
+                  onChange={handleInputChange('credential')}
                   className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-primary"
                   disabled={isLoading}
                 />

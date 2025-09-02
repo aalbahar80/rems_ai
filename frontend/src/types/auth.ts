@@ -87,7 +87,7 @@ export interface RolePermissions {
 
 // Login/logout types
 export interface LoginCredentials {
-  email: string;
+  credential: string;
   password: string;
 }
 
