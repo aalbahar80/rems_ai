@@ -152,7 +152,27 @@ docker-compose up -d
 docker-compose --profile tools up -d
 ```
 
-### 5. Verify Installation
+### 5. Initialize Database Schema
+
+After containers are running, initialize the database schema:
+
+```bash
+# Navigate back to project root (if in .devcontainer)
+cd ..
+
+# Initialize base schema (REQUIRED - run first)
+docker exec -i postgres psql -U rems_user rems < database/schema/00_rems_base_schema.sql
+
+# Initialize additional features (run in order)
+docker exec -i postgres psql -U rems_user rems < database/schema/01_firms_multi_tenant_support.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/02_ownership_model_enhancements.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/03_approval_workflow_improvements.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/04_tenant_portal_features.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/05_business_intelligence_views.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/06_advanced_business_functions.sql
+```
+
+### 6. Verify Installation
 
 ```bash
 # Check running containers
@@ -162,7 +182,10 @@ docker-compose ps
 docker-compose logs -f
 
 # Test database connection
-docker exec -it rems-postgres psql -U rems_user -d rems -c "SELECT version();"
+docker exec -it postgres psql -U rems_user -d rems -c "SELECT version();"
+
+# Verify schema initialization
+docker exec -it postgres psql -U rems_user -d rems -c "\dt rems.*"
 ```
 
 ---
@@ -250,7 +273,7 @@ open http://localhost:8080
 docker-compose logs -f [service-name]
 
 # Access database shell
-docker exec -it rems-postgres psql -U rems_user -d rems
+docker exec -it postgres psql -U rems_user -d rems
 
 # Restart a service
 docker-compose restart [service-name]
@@ -275,26 +298,49 @@ docker-compose down
 
 ```bash
 # Complete reset with fresh schema
+cd .devcontainer
 docker-compose down
-docker volume rm rems_postgres-data
+docker volume rm .devcontainer_postgres-data
 docker-compose up -d
+
+# After containers are running, initialize schema (from project root)
+cd ..
+docker exec -i postgres psql -U rems_user rems < database/schema/00_rems_base_schema.sql
+# Then run additional schema files as needed (01-06)
 ```
 
 #### Backup Database
 
 ```bash
 # Create backup
-docker exec rems-postgres pg_dump -U rems_user rems > backup_$(date +%Y%m%d).sql
+docker exec postgres pg_dump -U rems_user rems > backup_$(date +%Y%m%d).sql
 
 # Restore backup
-docker exec -i rems-postgres psql -U rems_user rems < backup_20240101.sql
+docker exec -i postgres psql -U rems_user rems < backup_20240101.sql
 ```
 
-#### Run Migrations
+#### Initialize Database Schema
+
+After container startup, initialize the database schema in order:
 
 ```bash
-# Execute migration files
-docker exec -i rems-postgres psql -U rems_user rems < database/migrations/001_update.sql
+# Execute base schema (required first)
+docker exec -i postgres psql -U rems_user rems < database/schema/00_rems_base_schema.sql
+
+# Execute enhancements in order
+docker exec -i postgres psql -U rems_user rems < database/schema/01_firms_multi_tenant_support.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/02_ownership_model_enhancements.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/03_approval_workflow_improvements.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/04_tenant_portal_features.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/05_business_intelligence_views.sql
+docker exec -i postgres psql -U rems_user rems < database/schema/06_advanced_business_functions.sql
+```
+
+#### Run Individual Schema Files
+
+```bash
+# Execute specific schema file
+docker exec -i postgres psql -U rems_user rems < database/schema/[filename].sql
 ```
 
 ---
@@ -302,6 +348,22 @@ docker exec -i rems-postgres psql -U rems_user rems < database/migrations/001_up
 ## Database Management
 
 ### Schema Overview
+
+**Database Schema Files Structure:**
+
+The database schema is organized in `/database/schema/` with intuitive naming:
+
+| File                                    | Purpose                     | Status         |
+| --------------------------------------- | --------------------------- | -------------- |
+| `00_rems_base_schema.sql`               | Core database schema        | Required first |
+| `01_firms_multi_tenant_support.sql`     | Multi-tenant firm support   | Enhancement    |
+| `02_ownership_model_enhancements.sql`   | Advanced ownership tracking | Enhancement    |
+| `03_approval_workflow_improvements.sql` | Approval workflow system    | Enhancement    |
+| `04_tenant_portal_features.sql`         | Tenant self-service portal  | Enhancement    |
+| `05_business_intelligence_views.sql`    | Reporting and analytics     | Enhancement    |
+| `06_advanced_business_functions.sql`    | Extended business logic     | Enhancement    |
+
+**Database Contents:**
 
 The REMS database contains 23 tables across 10 modules:
 
@@ -394,7 +456,7 @@ netstat -ano | findstr :5432  # Windows
 
 ```bash
 # Reset database permissions
-docker exec -it rems-postgres psql -U postgres -c "GRANT ALL ON SCHEMA rems TO rems_user;"
+docker exec -it postgres psql -U postgres -c "GRANT ALL ON SCHEMA rems TO rems_user;"
 ```
 
 #### Container Won't Start
@@ -412,7 +474,7 @@ docker exec -it rems-postgres psql -U postgres -c "GRANT ALL ON SCHEMA rems TO r
 
 ```bash
 # Container inspection
-docker inspect rems-postgres
+docker inspect postgres
 
 # Check resource usage
 docker stats
@@ -424,7 +486,7 @@ docker system prune -a
 docker-compose logs --tail=100 -f postgres
 
 # Execute commands in container
-docker exec -it rems-postgres bash
+docker exec -it postgres bash
 ```
 
 ---
@@ -478,9 +540,9 @@ alias dcl='docker-compose logs -f'
 alias dce='docker-compose exec'
 
 # REMS specific
-alias rems-db='docker exec -it rems-postgres psql -U rems_user -d rems'
+alias rems-db='docker exec -it postgres psql -U rems_user -d rems'
 alias rems-logs='docker-compose -f .devcontainer/docker-compose.yml logs -f'
-alias rems-reset='docker-compose down && docker volume rm rems_postgres-data && docker-compose up -d'
+alias rems-reset='cd .devcontainer && docker-compose down && docker volume rm .devcontainer_postgres-data && docker-compose up -d && cd ..'
 ```
 
 ### VS Code DevContainer
