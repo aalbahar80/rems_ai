@@ -28,12 +28,15 @@ import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EditUserModal } from '@/components/admin/EditUserModal';
 import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
 interface ViewUserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onUserUpdated?: () => void;
+  onManageAssignments?: (user: User) => void;
   user: User | null;
 }
 
@@ -110,13 +113,20 @@ interface LoginActivity {
   last_failed_login?: string;
 }
 
-export function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
+export function ViewUserModal({
+  isOpen,
+  onClose,
+  onUserUpdated,
+  onManageAssignments,
+  user,
+}: ViewUserModalProps) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'details' | 'sessions' | 'activity' | 'permissions'
   >('details');
   const [userSessions, setUserSessions] = useState<UserSession[]>([]);
   const [loginActivity, setLoginActivity] = useState<LoginActivity[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -281,6 +291,17 @@ export function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
       }
     }
     return 'Unknown Location';
+  };
+
+  const handleEditUser = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    setShowEditModal(false);
+    if (onUserUpdated) {
+      onUserUpdated();
+    }
   };
 
   if (!user) return null;
@@ -547,17 +568,31 @@ export function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
                 </Card>
 
                 {/* Firm Assignments */}
-                {user.firm_assignments && user.firm_assignments.length > 0 && (
-                  <Card className="md:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2 text-base">
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
                         <Building2 className="h-4 w-4" />
                         <span>
-                          Firm Assignments ({user.firm_assignments.length})
+                          Firm Assignments ({user.firm_assignments?.length || 0}
+                          )
                         </span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                      </div>
+                      {onManageAssignments && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onManageAssignments(user)}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Manage
+                        </Button>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {user.firm_assignments &&
+                    user.firm_assignments.length > 0 ? (
                       <div className="space-y-3">
                         {user.firm_assignments.map((assignment) => (
                           <div
@@ -600,9 +635,19 @@ export function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
                           </div>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <div className="text-center py-6">
+                        <Building2 className="h-8 w-8 text-muted-foreground/50 mx-auto" />
+                        <p className="text-sm text-muted-foreground mt-2">
+                          No firm assignments
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Use the Manage button to assign this user to firms
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Entity Information */}
                 {user.entity_name && (
@@ -859,15 +904,19 @@ export function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
         <Button variant="outline" onClick={onClose}>
           Close
         </Button>
-        <Button
-          onClick={() => {
-            /* TODO: Open edit modal */
-          }}
-        >
+        <Button onClick={handleEditUser}>
           <Settings className="h-4 w-4 mr-2" />
           Edit User
         </Button>
       </ModalFooter>
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+        user={user}
+      />
     </Modal>
   );
 }

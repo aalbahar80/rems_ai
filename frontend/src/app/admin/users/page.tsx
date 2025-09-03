@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
 import { ViewUserModal } from '@/components/admin/ViewUserModal';
+import { ManageFirmAssignmentsModal } from '@/components/admin/ManageFirmAssignmentsModal';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -102,6 +103,7 @@ export default function UsersManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showAssignmentsModal, setShowAssignmentsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const loadUsers = useCallback(async () => {
@@ -193,6 +195,11 @@ export default function UsersManagement() {
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
     setShowViewModal(true);
+  };
+
+  const handleManageAssignments = (user: User) => {
+    setSelectedUser(user);
+    setShowAssignmentsModal(true);
   };
 
   const handleToggleUserStatus = async (userId: number) => {
@@ -333,11 +340,13 @@ export default function UsersManagement() {
     onViewUser,
     onToggleStatus,
     onUnlockUser,
+    onManageAssignments,
   }: {
     user: User;
     onViewUser: (user: User) => void;
     onToggleStatus: (userId: number) => void;
     onUnlockUser: (userId: number) => void;
+    onManageAssignments: (user: User) => void;
   }) => {
     const [actionMenuOpen, setActionMenuOpen] = useState(false);
     const TypeIcon = getUserTypeIcon(user.user_type);
@@ -544,7 +553,13 @@ export default function UsersManagement() {
                         )}
                       </button>
                     )}
-                    <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted">
+                    <button
+                      onClick={() => {
+                        onManageAssignments(user);
+                        setActionMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted"
+                    >
                       <Building2 className="h-4 w-4" />
                       <span>Manage Assignments</span>
                     </button>
@@ -812,6 +827,7 @@ export default function UsersManagement() {
                         onViewUser={handleViewUser}
                         onToggleStatus={handleToggleUserStatus}
                         onUnlockUser={handleUnlockUser}
+                        onManageAssignments={handleManageAssignments}
                       />
                     ))}
                   </tbody>
@@ -861,6 +877,22 @@ export default function UsersManagement() {
         <ViewUserModal
           isOpen={showViewModal}
           onClose={() => setShowViewModal(false)}
+          onUserUpdated={() => {
+            loadUsers();
+            loadStatistics();
+          }}
+          onManageAssignments={handleManageAssignments}
+          user={selectedUser}
+        />
+
+        {/* Manage Firm Assignments Modal */}
+        <ManageFirmAssignmentsModal
+          isOpen={showAssignmentsModal}
+          onClose={() => setShowAssignmentsModal(false)}
+          onSuccess={() => {
+            loadUsers();
+            loadStatistics();
+          }}
           user={selectedUser}
         />
       </div>
