@@ -52,6 +52,7 @@ export function Sidebar({ portal, className }: SidebarProps) {
         return [
           { name: 'Dashboard', href: '/admin', icon: Home },
           { name: 'Firms', href: '/admin/firms', icon: Building2 },
+          { name: 'Accountants', href: '/admin/accountants', icon: UserCheck },
           { name: 'Users', href: '/admin/users', icon: Users },
           { name: 'Settings', href: '/admin/settings', icon: Settings },
           {

@@ -16,6 +16,7 @@ const financialRoutes = require('./src/routes/financial');
 const maintenanceRoutes = require('./src/routes/maintenance');
 const firmRoutes = require('./src/routes/firms');
 const userRoutes = require('./src/routes/users');
+const accountantRoutes = require('./src/routes/accountants');
 const settingsRoutes = require('./src/routes/settings');
 
 const app = express();
@@ -146,6 +147,7 @@ app.use('/api/v1/financial', financialRoutes);
 app.use('/api/v1/maintenance', maintenanceRoutes);
 app.use('/api/v1/firms', firmRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/accountants', accountantRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 
 // 404 handler
