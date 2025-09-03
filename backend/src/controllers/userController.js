@@ -21,7 +21,7 @@ const getAllUsers = async (req, res) => {
     let paramIndex = 1;
 
     // For non-admin users, filter by firm context
-    if (!req.firmContext?.can_access_all_firms) {
+    if (req.firmContext && !req.firmContext.can_access_all_firms) {
       whereClause += ` AND fa.firm_id = $${paramIndex}`;
       queryParams.push(req.firmContext.firm_id);
       paramIndex++;
@@ -48,22 +48,40 @@ const getAllUsers = async (req, res) => {
       paramIndex++;
     }
 
-    // Build base query with firm assignments
-    const baseQuery = `
-      FROM rems.users u
-      LEFT JOIN rems.user_firm_assignments fa ON u.user_id = fa.user_id
-      LEFT JOIN rems.firms f ON fa.firm_id = f.firm_id
-      ${whereClause}
-    `;
+    // Simplified query without DISTINCT for now
+    let simpleWhereClause = 'WHERE 1=1';
+    let simpleQueryParams = [];
+    let simpleParamIndex = 1;
+
+    // Search filter
+    if (search) {
+      simpleWhereClause += ` AND (u.username ILIKE $${simpleParamIndex} OR u.email ILIKE $${simpleParamIndex})`;
+      simpleQueryParams.push(`%${search}%`);
+      simpleParamIndex++;
+    }
+
+    // User type filter
+    if (user_type !== 'all') {
+      simpleWhereClause += ` AND u.user_type = $${simpleParamIndex}`;
+      simpleQueryParams.push(user_type);
+      simpleParamIndex++;
+    }
+
+    // Status filter
+    if (status !== 'all') {
+      simpleWhereClause += ` AND u.is_active = $${simpleParamIndex}`;
+      simpleQueryParams.push(status === 'active');
+      simpleParamIndex++;
+    }
 
     // Get total count
-    const countQuery = `SELECT COUNT(DISTINCT u.user_id) as total ${baseQuery}`;
-    const countResult = await query(countQuery, queryParams);
+    const countQuery = `SELECT COUNT(*) as total FROM rems.users u ${simpleWhereClause}`;
+    const countResult = await query(countQuery, simpleQueryParams);
     const total = parseInt(countResult.rows[0].total);
 
-    // Get users with pagination
+    // Get users with pagination - simplified query without JSON issues
     const usersQuery = `
-      SELECT DISTINCT
+      SELECT 
         u.user_id,
         u.username,
         u.email,
@@ -74,31 +92,21 @@ const getAllUsers = async (req, res) => {
         u.timezone,
         u.is_active,
         u.email_verified,
+        u.two_factor_enabled,
         u.last_login,
         u.phone,
+        u.login_attempts,
+        u.locked_until,
         u.created_at,
-        u.updated_at,
-        ARRAY_AGG(
-          CASE WHEN fa.is_active = true THEN
-            json_build_object(
-              'firm_id', f.firm_id,
-              'firm_name', f.firm_name,
-              'user_role', fa.user_role,
-              'access_level', fa.access_level,
-              'assigned_at', fa.assigned_at
-            )
-          END
-        ) FILTER (WHERE fa.is_active = true) as firm_assignments
-      ${baseQuery}
-      GROUP BY u.user_id, u.username, u.email, u.user_type, u.related_entity_id, 
-               u.related_entity_type, u.preferred_language, u.timezone, u.is_active, 
-               u.email_verified, u.last_login, u.phone, u.created_at, u.updated_at
+        u.updated_at
+      FROM rems.users u
+      ${simpleWhereClause}
       ORDER BY u.created_at DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      LIMIT $${simpleParamIndex} OFFSET $${simpleParamIndex + 1}
     `;
-    queryParams.push(limit, offset);
+    simpleQueryParams.push(limit, offset);
 
-    const result = await query(usersQuery, queryParams);
+    const result = await query(usersQuery, simpleQueryParams);
 
     res.json({
       success: true,
@@ -167,7 +175,7 @@ const getUserById = async (req, res) => {
         fa.assignment_id,
         fa.firm_id,
         f.firm_name,
-        fa.user_role,
+        fa.role_in_firm,
         fa.access_level,
         fa.is_active,
         fa.assigned_at,
@@ -331,7 +339,7 @@ const createUser = async (req, res) => {
       for (const assignment of firm_assignments) {
         const assignmentQuery = `
           INSERT INTO rems.user_firm_assignments (
-            user_id, firm_id, user_role, access_level, assigned_by
+            user_id, firm_id, role_in_firm, access_level, assigned_by
           )
           VALUES ($1, $2, $3, $4, $5)
         `;
@@ -339,7 +347,7 @@ const createUser = async (req, res) => {
         await query(assignmentQuery, [
           newUser.user_id,
           assignment.firm_id,
-          assignment.user_role || user_type,
+          assignment.role_in_firm || user_type,
           assignment.access_level || 'standard',
           req.user.user_id,
         ]);
@@ -488,12 +496,12 @@ const updateUser = async (req, res) => {
 const assignUserToFirm = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { firm_id, user_role, access_level = 'standard' } = req.body;
+    const { firm_id, role_in_firm, access_level = 'standard' } = req.body;
 
-    if (!firm_id || !user_role) {
+    if (!firm_id || !role_in_firm) {
       return res.status(400).json({
         success: false,
-        error: 'firm_id and user_role are required',
+        error: 'firm_id and role_in_firm are required',
       });
     }
 
@@ -531,13 +539,13 @@ const assignUserToFirm = async (req, res) => {
       // Update existing assignment
       const updateQuery = `
         UPDATE rems.user_firm_assignments
-        SET user_role = $1, access_level = $2, is_active = true, assigned_at = CURRENT_TIMESTAMP, assigned_by = $3
+        SET role_in_firm = $1, access_level = $2, is_active = true, assigned_at = CURRENT_TIMESTAMP, assigned_by = $3
         WHERE user_id = $4 AND firm_id = $5
         RETURNING *
       `;
 
       const result = await query(updateQuery, [
-        user_role,
+        role_in_firm,
         access_level,
         req.user.user_id,
         userId,
@@ -553,7 +561,7 @@ const assignUserToFirm = async (req, res) => {
     } else {
       // Create new assignment
       const createQuery = `
-        INSERT INTO rems.user_firm_assignments (user_id, firm_id, user_role, access_level, assigned_by)
+        INSERT INTO rems.user_firm_assignments (user_id, firm_id, role_in_firm, access_level, assigned_by)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
       `;
@@ -561,7 +569,7 @@ const assignUserToFirm = async (req, res) => {
       const result = await query(createQuery, [
         userId,
         firm_id,
-        user_role,
+        role_in_firm,
         access_level,
         req.user.user_id,
       ]);
@@ -633,6 +641,347 @@ const removeUserFromFirm = async (req, res) => {
   }
 };
 
+// Get user statistics
+const getUserStatistics = async (req, res) => {
+  try {
+    const statisticsQuery = `
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN is_active = true THEN 1 END) as active_users,
+        COUNT(CASE WHEN is_active = false THEN 1 END) as inactive_users,
+        COUNT(CASE WHEN email_verified = true THEN 1 END) as verified_users,
+        COUNT(CASE WHEN locked_until IS NOT NULL AND locked_until > CURRENT_TIMESTAMP THEN 1 END) as locked_users,
+        COUNT(CASE WHEN two_factor_enabled = true THEN 1 END) as two_factor_enabled_users,
+        COUNT(CASE WHEN last_login >= CURRENT_TIMESTAMP - INTERVAL '7 days' THEN 1 END) as recently_active_users,
+        COUNT(CASE WHEN user_type = 'admin' THEN 1 END) as admin_users,
+        COUNT(CASE WHEN user_type = 'accountant' THEN 1 END) as accountant_users,
+        COUNT(CASE WHEN user_type = 'owner' THEN 1 END) as owner_users,
+        COUNT(CASE WHEN user_type = 'tenant' THEN 1 END) as tenant_users,
+        COUNT(CASE WHEN user_type = 'vendor' THEN 1 END) as vendor_users,
+        COUNT(CASE WHEN user_type = 'maintenance_staff' THEN 1 END) as maintenance_staff_users
+      FROM rems.users
+    `;
+
+    const result = await query(statisticsQuery);
+    const stats = result.rows[0];
+
+    // Format response
+    const statistics = {
+      total_users: parseInt(stats.total_users),
+      active_users: parseInt(stats.active_users),
+      inactive_users: parseInt(stats.inactive_users),
+      verified_users: parseInt(stats.verified_users),
+      locked_users: parseInt(stats.locked_users),
+      two_factor_enabled_users: parseInt(stats.two_factor_enabled_users),
+      recently_active_users: parseInt(stats.recently_active_users),
+      user_type_breakdown: {
+        admin: parseInt(stats.admin_users),
+        accountant: parseInt(stats.accountant_users),
+        owner: parseInt(stats.owner_users),
+        tenant: parseInt(stats.tenant_users),
+        vendor: parseInt(stats.vendor_users),
+        maintenance_staff: parseInt(stats.maintenance_staff_users),
+      },
+    };
+
+    res.json({
+      success: true,
+      data: { statistics },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Get user statistics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve user statistics',
+    });
+  }
+};
+
+// Toggle user active status
+const toggleUserStatus = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Get current status
+    const currentUserQuery = `
+      SELECT user_id, username, is_active
+      FROM rems.users 
+      WHERE user_id = $1
+    `;
+    const currentUser = await query(currentUserQuery, [userId]);
+
+    if (currentUser.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    const newStatus = !currentUser.rows[0].is_active;
+
+    // Update status
+    const updateQuery = `
+      UPDATE rems.users 
+      SET is_active = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = $2
+      RETURNING user_id, username, is_active, updated_at
+    `;
+
+    const result = await query(updateQuery, [newStatus, userId]);
+
+    res.json({
+      success: true,
+      message: `User ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      data: result.rows[0],
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Toggle user status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to toggle user status',
+    });
+  }
+};
+
+// Unlock user account
+const unlockUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Reset login attempts and clear lock
+    const updateQuery = `
+      UPDATE rems.users 
+      SET 
+        locked_until = NULL,
+        login_attempts = 0,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = $1
+      RETURNING user_id, username, locked_until, login_attempts, updated_at
+    `;
+
+    const result = await query(updateQuery, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User account unlocked successfully',
+      data: result.rows[0],
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Unlock user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to unlock user account',
+    });
+  }
+};
+
+// Reset user password
+const resetUserPassword = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Check if user exists
+    const userExists = await query(
+      'SELECT user_id, username, email FROM rems.users WHERE user_id = $1',
+      [userId]
+    );
+
+    if (userExists.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Generate new temporary password
+    const generatePassword = () => {
+      const length = 12;
+      const charset =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+      let password = '';
+      for (let i = 0; i < length; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+      }
+      return password;
+    };
+
+    const newPassword = generatePassword();
+    const saltRounds = 12;
+    const password_hash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password and reset security flags
+    const updateQuery = `
+      UPDATE rems.users 
+      SET 
+        password_hash = $1,
+        locked_until = NULL,
+        login_attempts = 0,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = $2
+      RETURNING user_id, username, email, updated_at
+    `;
+
+    const result = await query(updateQuery, [password_hash, userId]);
+
+    // Log password reset in audit table
+    const auditQuery = `
+      INSERT INTO rems.entity_audit_log (
+        table_name, entity_id, operation_type, changed_by, 
+        change_reason, ip_address, user_agent
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+
+    await query(auditQuery, [
+      'users',
+      userId,
+      'UPDATE',
+      req.user.user_id,
+      'Password reset by administrator',
+      req.ip || 'unknown',
+      req.get('User-Agent') || 'unknown',
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully',
+      data: {
+        user_id: result.rows[0].user_id,
+        username: result.rows[0].username,
+        email: result.rows[0].email,
+        new_password: newPassword,
+        updated_at: result.rows[0].updated_at,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reset password',
+    });
+  }
+};
+
+// Get user sessions
+const getUserSessions = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Check if user exists
+    const userExists = await query(
+      'SELECT user_id FROM rems.users WHERE user_id = $1',
+      [userId]
+    );
+
+    if (userExists.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Get active sessions
+    const sessionsQuery = `
+      SELECT 
+        session_id,
+        ip_address,
+        user_agent,
+        device_info,
+        location_info,
+        login_time,
+        logout_time,
+        last_activity,
+        expires_at,
+        is_active
+      FROM rems.user_sessions 
+      WHERE user_id = $1 AND is_active = true
+      ORDER BY last_activity DESC
+    `;
+
+    const result = await query(sessionsQuery, [userId]);
+
+    res.json({
+      success: true,
+      data: { sessions: result.rows },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Get user sessions error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve user sessions',
+    });
+  }
+};
+
+// Get user login activity
+const getUserLoginActivity = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const days = parseInt(req.query.days) || 30;
+
+    // Check if user exists
+    const userExists = await query(
+      'SELECT user_id FROM rems.users WHERE user_id = $1',
+      [userId]
+    );
+
+    if (userExists.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Get login activity for the specified period
+    const activityQuery = `
+      SELECT 
+        DATE(login_time) as login_date,
+        COUNT(*) as total_attempts,
+        COUNT(CASE WHEN success = true THEN 1 END) as successful_attempts,
+        COUNT(CASE WHEN success = false THEN 1 END) as failed_attempts,
+        ROUND(
+          (COUNT(CASE WHEN success = true THEN 1 END) * 100.0 / COUNT(*)),
+          2
+        ) as success_rate,
+        COUNT(DISTINCT ip_address) as unique_ips,
+        MAX(CASE WHEN success = true THEN login_time END) as last_successful_login,
+        MAX(CASE WHEN success = false THEN login_time END) as last_failed_login
+      FROM rems.login_history 
+      WHERE user_id = $1 
+        AND login_time >= CURRENT_TIMESTAMP - INTERVAL '%d days'
+      GROUP BY DATE(login_time)
+      ORDER BY login_date DESC
+      LIMIT 50
+    `;
+
+    const result = await query(activityQuery.replace('%d', days), [userId]);
+
+    res.json({
+      success: true,
+      data: { activity: result.rows },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Get user login activity error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve user login activity',
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -640,4 +989,10 @@ module.exports = {
   updateUser,
   assignUserToFirm,
   removeUserFromFirm,
+  getUserStatistics,
+  toggleUserStatus,
+  unlockUser,
+  resetUserPassword,
+  getUserSessions,
+  getUserLoginActivity,
 };

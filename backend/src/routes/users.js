@@ -16,19 +16,43 @@ const {
   updateUser,
   assignUserToFirm,
   removeUserFromFirm,
+  getUserStatistics,
+  toggleUserStatus,
+  unlockUser,
+  resetUserPassword,
+  getUserSessions,
+  getUserLoginActivity,
 } = require('../controllers/userController');
 
 // All routes require authentication
 router.use(authenticateToken);
 
-// Extract firm context for multi-tenant operations
-router.use(extractFirmContext);
-
-// Routes accessible by admin and accountant
+// Admin-only routes for user management (specific routes BEFORE parameterized routes)
 router.get('/', authorizeRoles('admin', 'accountant'), getAllUsers);
+router.get('/statistics', authorizeRoles('admin'), getUserStatistics);
 router.post('/', authorizeRoles('admin'), createUser);
 
-// Routes with user ownership validation
+// User status management routes (admin only, no firm context needed)
+router.patch('/:id/toggle-status', authorizeRoles('admin'), toggleUserStatus);
+router.patch('/:id/unlock', authorizeRoles('admin'), unlockUser);
+router.patch('/:id/reset-password', authorizeRoles('admin'), resetUserPassword);
+
+// User session and activity routes (admin only, no firm context needed)
+router.get('/:id/sessions', authorizeRoles('admin'), getUserSessions);
+router.get(
+  '/:id/login-activity',
+  authorizeRoles('admin'),
+  getUserLoginActivity
+);
+
+// Firm assignment routes (admin only, no firm context needed)
+router.post('/:id/assign-firm', authorizeRoles('admin'), assignUserToFirm);
+router.post('/:id/remove-firm', authorizeRoles('admin'), removeUserFromFirm);
+
+// Routes that need firm context (if any)
+router.use(extractFirmContext);
+
+// Routes with user ownership validation (require firm context)
 router.get(
   '/:id',
   authorizeRoles('admin', 'accountant'),
@@ -41,9 +65,5 @@ router.put(
   validateFirmOwnership('user'),
   updateUser
 );
-
-// Firm assignment routes (admin only)
-router.post('/:id/assign-firm', authorizeRoles('admin'), assignUserToFirm);
-router.post('/:id/remove-firm', authorizeRoles('admin'), removeUserFromFirm);
 
 module.exports = router;
