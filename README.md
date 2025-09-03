@@ -311,7 +311,6 @@ Comprehensive documentation is available for all aspects of the system:
 | 📙 **[API Endpoints](docs/development/api/api_endpoints.md)**                                          | RESTful API documentation with examples                |
 | 📕 **[Docker Environment](docs/development/docker/docker_environment.md)**                             | Container setup and management guide                   |
 | 📓 **[Environment Variables](docs/development/setup/environment_variables.md)**                        | Configuration options and setup                        |
-| 🏗️ **[Schema Updates](docs/database/schema/schema_update_specification.md)**                           | Database schema update requirements and specifications |
 | 🎨 **[Admin Portal Wireframes](docs/development/wireframes/1_admin_portal/)**                          | Admin interface design specifications and journey maps |
 | 💼 **[Accountant Portal Wireframes](docs/development/wireframes/2_accountant_portal/)**                | Financial management interface specifications          |
 | 👤 **[Owner Portal Wireframes](docs/development/wireframes/3_owner_portal/)**                          | Property owner interface wireframes and specifications |
@@ -485,7 +484,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👥 Team
 
 - **Project Lead** - [aalbahar80](https://github.com/aalbahar80)
-- **Contributors** - [See all contributors](https://github.com/aalbahar80/rems/contributors)
+- **Contributors** - [Claude Code](https://claude.ai/code),
+  [See all contributors](https://github.com/aalbahar80/rems/contributors)
 
 ---
 
@@ -494,6 +494,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - PostgreSQL team for the robust database engine
 - Node.js community for the excellent ecosystem
 - Docker for containerization technology
+- Anthropic for Claude Code development assistance
 - All open-source contributors
 
 ---
