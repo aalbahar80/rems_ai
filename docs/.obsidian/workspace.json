@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "project_management/progress/session_20250902_103541.md",
+                "file": "project_management/status/current_status.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "session_20250902_103541"
+              "title": "current_status"
             }
           }
         ]
@@ -171,6 +171,7 @@
   },
   "active": "1c4676bce4c62346",
   "lastOpenFiles": [
+    "project_management/progress/session_20250902_103541.md",
     "project_management/progress/session_20250902_122100.md",
     "project_management/progress/session_20250902_140600.md",
     "project_management/progress/session_20250902_185300.md",
