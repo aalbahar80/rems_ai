@@ -1043,6 +1043,7 @@ export function CreateUserModal({
                         </div>
 
                         <div className="grid grid-cols-3 gap-2 mt-2">
+                          {/* Firm-specific role (not system user type) */}
                           <select
                             value={assignment.role_in_firm}
                             onChange={(e) =>
@@ -1054,16 +1055,12 @@ export function CreateUserModal({
                             }
                             className="text-xs border border-input rounded px-2 py-1"
                             disabled={loading}
+                            title="Role within this specific firm"
                           >
-                            <option value="admin">Admin</option>
-                            <option value="senior_admin">Senior Admin</option>
-                            <option value="accountant">Accountant</option>
-                            <option value="senior_accountant">
-                              Senior Accountant
-                            </option>
+                            <option value="member">Member</option>
                             <option value="manager">Manager</option>
-                            <option value="staff">Staff</option>
-                            <option value="readonly">Read Only</option>
+                            <option value="admin">Admin</option>
+                            <option value="viewer">Viewer</option>
                           </select>
 
                           <select

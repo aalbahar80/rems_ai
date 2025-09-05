@@ -485,7 +485,7 @@ export function ManageFirmAssignmentsModal({
                       <option value="member">Member</option>
                       <option value="manager">Manager</option>
                       <option value="admin">Admin</option>
-                      <option value="owner">Owner</option>
+                      <option value="viewer">Viewer</option>
                     </select>
                   </FormField>
 
